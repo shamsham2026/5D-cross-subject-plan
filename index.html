@@ -72,7 +72,7 @@
   <div id="teacher-control-bar" class="teacher-ctrl" style="display: none;">
     <strong>課堂導航：</strong>
     <button class="secondary" onclick="prevStep()">⬅️ 上一步</button>
-    <span id="current-step-display" style="font-weight: bold; color: var(--primary);"活動1 / 8</span>
+    <span id="current-step-display" style="font-weight: bold; color: var(--primary);">活動 1 / 8</span>
     <button onclick="nextStep()">下一步 ➡️</button>
     
     <button class="accent" onclick="openGroupControlModal()">👥 學生分組指揮中心</button>
@@ -121,7 +121,7 @@
       <button class="secondary" onclick="document.getElementById('meal-config-panel').style.display='none'">關閉</button>
     </div>
 
-    <!-- ==================== 活動1: 學生投票==================== -->
+    <!-- ==================== 活動1: 學生投票 ==================== -->
     <div id="step-1" class="step-box card">
       <h2>活動1: 最受歡迎的午餐款式投票統計</h2>
       <div id="student-vote-section">
@@ -171,7 +171,7 @@
       <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:12px; margin-bottom:15px;">
         <strong id="assigned-meal-title">載入分配餐盒中...</strong>
         <p style="font-size:13px; margin:4px 0 0;">
-          🤝 <strong>分組學習中：</strong>組內 4 位同學已連線，任何組員在此頁輸入或修改，全組平板會即時同步更新！
+          🤝 <strong>分組學習中：</strong>組內同學已連線，任何組員在此頁輸入或修改，全組平板會即時同步更新！
           <span class="sync-indicator"><span class="sync-dot"></span> 組內連線正常</span>
         </p>
       </div>
@@ -185,7 +185,7 @@
           <input type="number" id="nutri-cal" placeholder="例如：800" oninput="broadcastGroupTyping('cal', this.value)">
           <label>鈉含量 (mg)：</label>
           <input type="number" id="nutri-na" placeholder="例如：1100" oninput="broadcastGroupTyping('na', this.value)">
-          <label></label>「穀物 : 蔬菜 : 肉類」比例：</label>
+          <label>「穀物 : 蔬菜 : 肉類」比例：</label>
           <input type="text" id="nutri-ratio" placeholder="例如：4 : 0.5 : 2" oninput="broadcastGroupTyping('ratio', this.value)">
           <label>健康評估：</label>
           <select id="nutri-verdict" onchange="broadcastGroupTyping('verdict', this.value)">
@@ -200,7 +200,7 @@
 
     <!-- ==================== 活動5: 檢視各組結果 ==================== -->
     <div id="step-5" class="step-box card">
-      <h2></h2>活動5: 檢視分緑探究成果</h2>
+      <h2>活動5: 檢視分組探究成果</h2>
       <p>各組探究成果展示：有沒有一款現有餐盒合乎大家心目中的理想標準？</p>
       <div id="all-nutri-grid" class="grid-3"></div>
       <div style="margin-top:15px; background:#fee2e2; border-left:4px solid var(--danger); padding:10px; font-weight:bold; color:var(--danger);">
@@ -210,7 +210,7 @@
 
     <!-- ==================== 活動6: 個人構想 ==================== -->
     <div id="step-6" class="step-box card">
-      <h2></h2>活動6: 你想要一份怎樣的餐盒？</h2>
+      <h2>活動6: 你想要一份怎樣的餐盒？</h2>
       <p>請依據 3:2:1 比例與營養價值，構思一份你心目中的理想餐盒：</p>
       <div class="grid-2">
         <div>
@@ -221,7 +221,7 @@
           <label>蔬菜類 (佔 2 份)：</label>
           <input type="text" id="p-veg" placeholder="例如：西蘭花 （纖維)">
           <label>肉類/蛋白質 (佔 1 份)：</label>
-          <input type="text" id="p-protein" placeholder="例如：雞脾 (蛋白質)">
+          <input type="text" id="p-protein" placeholder="例如：雞髀 (蛋白質)">
         </div>
         <div style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
           <span style="font-size:45px;">🍱</span>
@@ -239,15 +239,15 @@
 
     <!-- ==================== 活動8: 小組共識 ==================== -->
     <div id="step-8" class="step-box card">
-      <h2>活動 8: 一人計短 —— 四人小組共方案</h2>
+      <h2>活動 8: 一人計短 —— 四人小組共識方案</h2>
       <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:10px; margin-bottom:12px;">
         🤝 <strong>小組共識中：</strong>此表格為全組共用，組內任何同學都能修改，各組員螢幕將自動同步，但注意用詞表達，互相尊重，耐心溝通！
       </div>
-      <label>達成共識（如何平衡 4 位組員的個人喜好？）：</label>
-      <input type="text" id="g-compromise" placeholder="例如：組員A想食炸物；組員B要甜味，.." oninput="broadcastGroupTyping('g_compromise', this.value)">
+      <label>達成共識（如何平衡組員的個人喜好？）：</label>
+      <input type="text" id="g-compromise" placeholder="例如：組員A想食炸物；組員B要甜味..." oninput="broadcastGroupTyping('g_compromise', this.value)">
       <label>小組終極菜單內容：</label>
-      <textarea id="g-menu" placeholder=秘密進行中....oninput="broadcastGroupTyping('g_menu', this.value)"></textarea>
-      <button style="background:var(--success);" onclick="submitGroupBoxFinal()">終極方案將於明天發布</button>
+      <textarea id="g-menu" placeholder="秘密進行中..." oninput="broadcastGroupTyping('g_menu', this.value)"></textarea>
+      <button style="background:var(--success);" onclick="submitGroupBoxFinal()">提交小組終極方案</button>
       <div id="group-results-list" style="margin-top:20px;"></div>
     </div>
 
@@ -290,7 +290,13 @@
     function init() {
       localStorage.setItem('MY_STU_ID', currentStudentId);
       const saved = localStorage.getItem('COLLAB_LUNCH_STATE');
-      if (saved) appState = JSON.parse(saved);
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+        } catch (e) {
+          console.error("無法解析快取資料", e);
+        }
+      }
 
       if (currentStudentName) {
         document.getElementById('student-login-card').style.display = 'none';
@@ -306,7 +312,7 @@
       syncView();
     }
 
-    // 跨裝置/分頁監聽
+    // 跨分頁監聽
     channel.onmessage = (e) => {
       const msg = e.data;
       if (msg.type === 'STATE_UPDATE') {
@@ -314,7 +320,6 @@
         checkMyGroupStatus();
         syncView();
       } else if (msg.type === 'GROUP_INPUT_SYNC') {
-        // 小組即時鍵盤打字同步
         if (msg.group === currentStudentGroup) {
           receiveGroupSyncInput(msg.field, msg.value);
         }
@@ -341,7 +346,7 @@
       }
     }
 
-    // ---------------- 學生註冊與教師隨機分組邏輯 ----------------
+    // ---------------- 學生註冊與隨機分組 ----------------
     function registerStudent() {
       const name = document.getElementById('login-stu-name').value.trim();
       if (!name) return alert("請輸入姓名/學號！");
@@ -391,24 +396,29 @@
     function assignRandomGroups() {
       const keys = Object.keys(appState.students);
       if (keys.length === 0) return alert("目前尚無在線學生登入！");
-      // 洗牌隨機分入 1 至 6 組
-      keys.sort(() => Math.random() - 0.5);
+      
+      // Fisher-Yates 均勻洗牌
+      for (let i = keys.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [keys[i], keys[j]] = [keys[j], keys[i]];
+      }
+      
       keys.forEach((key, index) => {
-        appState.students[key].group = (index % 6) + 1; // 循環分入 1-6 組
+        appState.students[key].group = (index % 6) + 1;
       });
       saveAndBroadcast();
-      openGroupControlModal(); // 刷新名單
-      alert("✅ 已將所有學生隨機分配至 6 個組別，學生端已自動切換為組別協同模式！");
+      openGroupControlModal();
+      alert("✅ 已將所有學生隨機分配至 6 個組別，學生端已自動切換！");
     }
 
-    // ---------------- 協同打字同步機制 ----------------
+    // ---------------- 協同輸入同步 ----------------
     function broadcastGroupTyping(field, value) {
       if (!currentStudentGroup) return;
       if (!appState.groupNutriDrafts[currentStudentGroup]) {
         appState.groupNutriDrafts[currentStudentGroup] = {};
       }
       appState.groupNutriDrafts[currentStudentGroup][field] = value;
-      // 即時廣播給同組成員
+      
       channel.postMessage({
         type: 'GROUP_INPUT_SYNC',
         group: currentStudentGroup,
@@ -419,12 +429,13 @@
     }
 
     function receiveGroupSyncInput(field, value) {
-      if (field === 'cal') document.getElementById('nutri-cal').value = value;
-      if (field === 'na') document.getElementById('nutri-na').value = value;
-      if (field === 'ratio') document.getElementById('nutri-ratio').value = value;
-      if (field === 'verdict') document.getElementById('nutri-verdict').value = value;
-      if (field === 'g_compromise') document.getElementById('g-compromise').value = value;
-      if (field === 'g_menu') document.getElementById('g-menu').value = value;
+      const target = document.getElementById(field === 'cal' ? 'nutri-cal' :
+                                             field === 'na' ? 'nutri-na' :
+                                             field === 'ratio' ? 'nutri-ratio' :
+                                             field === 'verdict' ? 'nutri-verdict' :
+                                             field === 'g_compromise' ? 'g-compromise' :
+                                             field === 'g_menu' ? 'g-menu' : null);
+      if (target) target.value = value;
     }
 
     // ---------------- 渲染各步驟 ----------------
@@ -450,7 +461,7 @@
       const grid = document.getElementById('vote-options-grid');
       grid.innerHTML = appState.meals.map(m => `
         <div class="meal-card">
-          <img class="meal-img" src="${m.img}">
+          <img class="meal-img" src="${m.img}" alt="${m.name}">
           <h4 style="margin:8px 0;">${m.name}</h4>
           <button onclick="castVote(${m.id})">投它一票 🍱</button>
         </div>
@@ -531,7 +542,6 @@
       document.getElementById('assigned-meal-title').innerText = `【第 ${currentStudentGroup} 組】獲分配探究餐盒：${assignedMeal.name}`;
       document.getElementById('assigned-meal-img').src = assignedMeal.img;
 
-      // 載入當前組別草稿
       const draft = appState.groupNutriDrafts[currentStudentGroup] || {};
       if (draft.cal) document.getElementById('nutri-cal').value = draft.cal;
       if (draft.na) document.getElementById('nutri-na').value = draft.na;
@@ -565,7 +575,7 @@
         const data = appState.nutriAnalysesFinal[idx];
         return `
           <div class="meal-card" style="text-align:left;">
-            <img class="meal-img" src="${m.img}" style="height:110px;">
+            <img class="meal-img" src="${m.img}" style="height:110px;" alt="${m.name}">
             <h4 style="margin:6px 0;">${m.name}</h4>
             ${data ? `
               <p style="font-size:13px; margin:2px 0;"><strong>檢測小組：</strong>第 ${data.group} 組</p>
@@ -630,7 +640,7 @@
       alert(`第 ${currentStudentGroup} 組終極方案已提交！`);
     }
 
-    // 教師設定 6 款餐盒輔助函數
+    // 教師設定餐盒輔助函數
     function openMealConfig() {
       const p = document.getElementById('meal-config-panel');
       p.style.display = p.style.display === 'none' ? 'block' : 'none';
@@ -639,7 +649,7 @@
         <div class="meal-card">
           <strong>餐盒 ${idx + 1}</strong>
           <input type="text" id="cfg-name-${idx}" value="${m.name}">
-          <img id="cfg-preview-${idx}" class="meal-img" src="${m.img}" style="height:80px; margin-bottom:6px;">
+          <img id="cfg-preview-${idx}" class="meal-img" src="${m.img}" style="height:80px; margin-bottom:6px;" alt="預覽">
           <input type="file" accept="image/*" onchange="previewImg(event, ${idx})">
         </div>
       `).join('');
