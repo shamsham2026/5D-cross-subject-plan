@@ -50,7 +50,6 @@
     .badge-green { background: #dcfce7; color: var(--success); }
     .badge-yellow { background: #fef3c7; color: var(--warning); }
     
-    /* 同步提示框 */
     .sync-indicator { font-size: 12px; color: #16a34a; display: inline-flex; align-items: center; gap: 4px; }
     .sync-dot { width: 8px; height: 8px; background: #16a34a; border-radius: 50%; display: inline-block; }
   </style>
@@ -93,7 +92,7 @@
       </div>
     </div>
 
-    <!-- 學生登入 (填寫姓名/學號) -->
+    <!-- 學生登入 -->
     <div id="student-login-card" class="card" style="border: 2px solid var(--primary);">
       <h3>👋 歡迎來到滬江健康小廚神課堂！請輸入你的個人資料：</h3>
       <label>班別（學號） / 姓名：</label>
@@ -144,7 +143,7 @@
         <option value="受歡迎的原因">受歡迎的原因</option>
         <option value="不受歡迎的原因">不受歡迎的原因</option>
       </select>
-      <textarea id="step2-text" placeholder="寫出原因（例如：多汁/ 無味...）"></textarea>
+      <textarea id="step2-text" placeholder="寫出原因（例如：多汁 / 無味...）"></textarea>
       <button onclick="submitStep2Reason()">送出個人想法</button>
       <h3 style="margin-top: 20px;">💡 觀看結果：</h3>
       <div id="step2-list" style="max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 6px;"></div>
@@ -219,7 +218,7 @@
           <label>穀物類 (佔 3 份)：</label>
           <input type="text" id="p-grain" placeholder="例如：紅米混白飯 (富含維他命B)">
           <label>蔬菜類 (佔 2 份)：</label>
-          <input type="text" id="p-veg" placeholder="例如：西蘭花 （纖維)">
+          <input type="text" id="p-veg" placeholder="例如：西蘭花 (纖維)">
           <label>肉類/蛋白質 (佔 1 份)：</label>
           <input type="text" id="p-protein" placeholder="例如：雞髀 (蛋白質)">
         </div>
@@ -256,7 +255,6 @@
   <script>
     const channel = new BroadcastChannel('lunchbox_collab_classroom');
 
-    // 預設 6 款餐盒
     const defaultMeals = [
       { id: 1, name: "A餐: 脆香炸雞扒白汁飯", img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=80" },
       { id: 2, name: "B餐: 鮮茄焗厚切豬扒飯", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" },
@@ -266,21 +264,19 @@
       { id: 6, name: "F餐: 蜜汁叉燒雙蛋飯", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80" }
     ];
 
-    // 全域狀態
     let appState = {
       currentStep: 1,
       meals: defaultMeals,
-      students: {}, // { id: { name: "...", group: null } }
+      students: {},
       votes: { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 },
       step2Reasons: [],
       step3Words: {},
-      groupNutriDrafts: {}, // { groupNumber: { cal, na, ratio, verdict } } 實時協同草稿
-      nutriAnalysesFinal: {}, // 各組最終提交
+      groupNutriDrafts: {},
+      nutriAnalysesFinal: {},
       personalBoxes: [],
       groupBoxFinals: {}
     };
 
-    // 本地學生身分
     let currentStudentId = localStorage.getItem('MY_STU_ID') || 'stu_' + Math.random().toString(36).substr(2, 6);
     let currentStudentName = localStorage.getItem('MY_STU_NAME') || '';
     let currentStudentGroup = null;
@@ -312,7 +308,6 @@
       syncView();
     }
 
-    // 跨分頁監聽
     channel.onmessage = (e) => {
       const msg = e.data;
       if (msg.type === 'STATE_UPDATE') {
@@ -346,7 +341,6 @@
       }
     }
 
-    // ---------------- 學生註冊與隨機分組 ----------------
     function registerStudent() {
       const name = document.getElementById('login-stu-name').value.trim();
       if (!name) return alert("請輸入姓名/學號！");
@@ -397,7 +391,6 @@
       const keys = Object.keys(appState.students);
       if (keys.length === 0) return alert("目前尚無在線學生登入！");
       
-      // Fisher-Yates 均勻洗牌
       for (let i = keys.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [keys[i], keys[j]] = [keys[j], keys[i]];
@@ -411,7 +404,6 @@
       alert("✅ 已將所有學生隨機分配至 6 個組別，學生端已自動切換！");
     }
 
-    // ---------------- 協同輸入同步 ----------------
     function broadcastGroupTyping(field, value) {
       if (!currentStudentGroup) return;
       if (!appState.groupNutriDrafts[currentStudentGroup]) {
@@ -425,7 +417,9 @@
         field: field,
         value: value
       });
-      localStorage.setItem('COLLAB_LUNCH_STATE', JSON.stringify(appState));
+      try {
+        localStorage.setItem('COLLAB_LUNCH_STATE', JSON.stringify(appState));
+      } catch(e) {}
     }
 
     function receiveGroupSyncInput(field, value) {
@@ -438,14 +432,13 @@
       if (target) target.value = value;
     }
 
-    // ---------------- 渲染各步驟 ----------------
     function syncView() {
       for (let i = 1; i <= 8; i++) {
         const el = document.getElementById(`step-${i}`);
         if (el) el.classList.toggle('active', i === appState.currentStep);
       }
-      document.getElementById('current-step-display').innerText = `環節 ${appState.currentStep} / 8`;
-      document.getElementById('step-badge').innerText = `同步進度：環節 ${appState.currentStep}`;
+      document.getElementById('current-step-display').innerText = `活動 ${appState.currentStep} / 8`;
+      document.getElementById('step-badge').innerText = `同步進度：活動 ${appState.currentStep}`;
 
       if (appState.currentStep === 1) renderStep1();
       if (appState.currentStep === 2) renderStep2();
@@ -456,7 +449,6 @@
       if (appState.currentStep === 8) renderStep8();
     }
 
-    // Step 1: 個人投票
     function renderStep1() {
       const grid = document.getElementById('vote-options-grid');
       grid.innerHTML = appState.meals.map(m => `
@@ -490,7 +482,6 @@
       saveAndBroadcast();
     }
 
-    // Step 2: 個人想法
     function renderStep2() {
       const select = document.getElementById('step2-target-meal');
       if (select.children.length === 0) {
@@ -516,13 +507,13 @@
       saveAndBroadcast();
     }
 
-    // Step 3: 文字雲
     function renderStep3() {
       const canvas = document.getElementById('wordCloudCanvas');
       const list = Object.entries(appState.step3Words).map(([w, s]) => [w, s * 12 + 10]);
       if (list.length === 0) list.push(['美味', 22], ['健康', 20], ['低鹽', 16]);
       WordCloud(canvas, { list: list, weightFactor: 1, color: 'random-dark' });
     }
+
     function submitStep3Word() {
       const w = document.getElementById('step3-word').value.trim();
       if (!w) return;
@@ -531,7 +522,6 @@
       saveAndBroadcast();
     }
 
-    // Step 4: 小組實時協同分析
     function renderStep4() {
       if (!currentStudentGroup) {
         document.getElementById('assigned-meal-title').innerText = "⚠️ 老師尚未執行分組，請等待老師在控制台分組...";
@@ -568,7 +558,6 @@
       alert(`第 ${currentStudentGroup} 組探究數據已確認提交至全班總表！`);
     }
 
-    // Step 5: 全班檢視
     function renderStep5() {
       const grid = document.getElementById('all-nutri-grid');
       grid.innerHTML = appState.meals.map((m, idx) => {
@@ -588,7 +577,6 @@
       }).join('');
     }
 
-    // Step 6: 個人構想
     function submitPersonalBox() {
       const name = document.getElementById('p-box-name').value.trim();
       const grain = document.getElementById('p-grain').value.trim();
@@ -600,7 +588,6 @@
       saveAndBroadcast();
     }
 
-    // Step 7: 個人方案展示
     function renderStep7() {
       const showcase = document.getElementById('showcase-list');
       showcase.innerHTML = appState.personalBoxes.map(box => `
@@ -613,7 +600,6 @@
       `).join('') || '<p style="color:#94a3b8;">等待個人提交中...</p>';
     }
 
-    // Step 8: 小組共編終極方案
     function renderStep8() {
       if (currentStudentGroup) {
         const draft = appState.groupNutriDrafts[currentStudentGroup] || {};
@@ -654,22 +640,67 @@
         </div>
       `).join('');
     }
+
     function previewImg(event, idx) {
       const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) { document.getElementById(`cfg-preview-${idx}`).src = e.target.result; };
-        reader.readAsDataURL(file);
-      }
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxSide = 400;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxSide) {
+              height = Math.round((height * maxSide) / width);
+              width = maxSide;
+            }
+          } else {
+            if (height > maxSide) {
+              width = Math.round((width * maxSide) / height);
+              height = maxSide;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          document.getElementById(`cfg-preview-${idx}`).src = compressedDataUrl;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
+
     function saveMealConfig() {
       for (let i = 0; i < 6; i++) {
-        appState.meals[i].name = document.getElementById(`cfg-name-${i}`).value;
-        appState.meals[i].img = document.getElementById(`cfg-preview-${i}`).src;
+        const nameInput = document.getElementById(`cfg-name-${i}`);
+        const previewImgEl = document.getElementById(`cfg-preview-${i}`);
+        
+        if (nameInput) {
+          appState.meals[i].name = nameInput.value.trim() || appState.meals[i].name;
+        }
+        if (previewImgEl && previewImgEl.src) {
+          appState.meals[i].img = previewImgEl.src;
+        }
       }
+
       document.getElementById('meal-config-panel').style.display = 'none';
-      saveAndBroadcast();
-      alert("6 款餐盒已更新並同步至全班！");
+
+      try {
+        saveAndBroadcast();
+        alert("✅ 餐盒已成功更新並同步至全班！");
+      } catch (err) {
+        console.error("儲存失敗：", err);
+        alert("⚠️ 儲存失敗：圖片總容量超出瀏覽器快取上限，請嘗試上載較小解析度的圖片！");
+      }
     }
 
     window.onload = init;
