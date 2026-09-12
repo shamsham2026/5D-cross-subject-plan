@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>小五跨學科：健康「盒」伙人 課堂互動系統</title>
-  <!-- 引入視覺化庫: Chart.js 與 WordCloud2 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
   <style>
@@ -19,77 +18,103 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif; }
     body { margin: 0; background: var(--bg); color: #334155; }
     
-    /* 頂部身份切換導航 */
     header { background: #1e293b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-    .role-badge { background: #3b82f6; padding: 4px 10px; border-radius: 99px; font-size: 14px; font-weight: bold; }
+    .role-badge { background: #3b82f6; padding: 4px 10px; border-radius: 99px; font-size: 13px; font-weight: bold; }
     
-    /* 主要佈局 */
-    .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .container { max-width: 1050px; margin: 20px auto; padding: 0 15px; }
+    .card { background: var(--card-bg); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); margin-bottom: 20px; }
     h2 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
     
-    /* 控制按鈕與表單 */
     button { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; font-size: 15px; cursor: pointer; transition: 0.2s; }
     button:hover { opacity: 0.9; }
     button.secondary { background: #64748b; }
     button:disabled { background: #cbd5e1; cursor: not-allowed; }
-    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin: 8px 0 16px; font-size: 15px; }
+    input, select, textarea { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; margin: 6px 0 14px; font-size: 15px; }
     
-    /* 教師中控條 */
     .teacher-ctrl { position: sticky; top: 0; background: #fff; z-index: 100; border-bottom: 3px solid var(--primary); display: flex; gap: 10px; align-items: center; padding: 10px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     
-    /* 隱藏與顯示邏輯 */
     .step-box { display: none; }
-    .step-box.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .step-box.active { display: block; animation: fadeIn 0.25s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* 營養標籤色塊 */
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    @media (max-width: 768px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+
+    /* 餐盒展示 */
+    .meal-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: #fff; text-align: center; }
+    .meal-img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; background: #f1f5f9; }
+    
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
     .badge-red { background: #fee2e2; color: var(--danger); }
     .badge-green { background: #dcfce7; color: var(--success); }
     .badge-yellow { background: #fef3c7; color: var(--warning); }
-    
-    /* 響應式雙屏/網格 */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-  <!-- 頂部身分欄 -->
   <header>
     <div><strong>🍱 小五跨學科：健康「盒」伙人</strong></div>
     <div>
-      <label style="margin-right: 8px;">當前模式：</label>
+      <label style="margin-right: 8px;">當前視圖：</label>
       <select id="role-selector" style="width: auto; margin:0;" onchange="switchRole(this.value)">
-        <option value="student">學生端 (iPad / 平板視圖)</option>
-        <option value="teacher">教師端 (中控主屏幕 / 投影視圖)</option>
+        <option value="student">學生模式</option>
+        <option value="teacher">教師模式</option>
       </select>
     </div>
   </header>
 
-  <!-- ==================== 教師中控操作條 (僅教師可見) ==================== -->
+  <!-- 教師模式 -->
   <div id="teacher-control-bar" class="teacher-ctrl" style="display: none;">
-    <strong>課堂進度控制：</strong>
+    <strong>進度列：</strong>
     <button class="secondary" onclick="prevStep()">⬅️ 上一步</button>
-    <span id="current-step-display" style="font-weight: bold; color: var(--primary);">環節 1 / 8</span>
+    <span id="current-step-display" style="font-weight: bold; color: var(--primary);">活動 1 / 8</span>
     <button onclick="nextStep()">下一步 ➡️</button>
-    <button class="secondary" style="margin-left: auto; background: #dc2626;" onclick="resetAllData()">重設課堂數據</button>
+    <button class="secondary" style="background:#0891b2;" onclick="openMealConfig()">⚙️ 設定投票項目</button>
+    <button class="secondary" style="margin-left: auto; background: #dc2626;" onclick="resetAllData()">重置數據</button>
   </div>
 
   <div class="container">
 
-    <!-- ==================== 學生鎖定/非同步提示 ==================== -->
-    <div id="student-header" class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
-      <div>學生：<strong id="stu-name-display">第 1 組 - 志強</strong></div>
-      <span class="role-badge" id="step-badge">當前同步至教師進度</span>
+    <!-- 學生身分列 -->
+    <div id="student-header" class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+      <div>
+        <label>你是：</label>
+        <select id="stu-group-select" style="width: auto; display: inline-block; margin: 0;" onchange="updateStudentGroup(this.value)">
+          <option value="1">第 1 組</option>
+          <option value="2">第 2 組</option>
+          <option value="3">第 3 組</option>
+          <option value="4">第 4 組</option>
+          <option value="5">第 5 組</option>
+          <option value="6">第 6 組</option>
+        </select>
+      </div>
+      <span class="role-badge" id="step-badge">與教師同步中</span>
     </div>
 
-    <!-- ==================== 環節 1: 觀看投票結果 ==================== -->
+    <!-- 教師設定彈窗 (設定6款餐) -->
+    <div id="meal-config-panel" class="card" style="display:none; border:2px solid #0891b2;">
+      <h3>⚙️ 教師設定：上載候選餐盒圖片</h3>
+      <p style="font-size:13px; color:#64748b;">餐盒自動同步。</p>
+      <div class="grid-3" id="meal-inputs-container"></div>
+      <button style="margin-top:10px; background:#0891b2;" onclick="saveMealConfig()">儲存並發佈</button>
+      <button class="secondary" onclick="document.getElementById('meal-config-panel').style.display='none'">關閉</button>
+    </div>
+
+    <!-- ==================== 活動1: 投票與結果 ==================== -->
     <div id="step-1" class="step-box card">
-      <h2>環節 1: 全班「最受歡迎午餐盒」投票結果</h2>
-      <p>數學探究：解讀統計圖表，哪一款餐盒得票最高？佔全班幾分之幾？</p>
-      <div style="max-width: 500px; margin: auto;">
+      <h2>環節 1: 最受歡迎午餐盒投票與統計結果</h2>
+      
+      <!-- 學生投票區 -->
+      <div id="student-vote-section" style="margin-bottom: 20px;">
+        <h3>🗳️ 請投下你最想吃的一票：</h3>
+        <div class="grid-3" id="vote-options-grid"></div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid #e2e8f0; margin: 20px 0;">
+      
+      <h3>📊 全班投票結果統計圖表</h3>
+      <div style="max-width: 600px; margin: auto;">
         <canvas id="voteChart"></canvas>
       </div>
     </div>
@@ -98,139 +123,150 @@
     <div id="step-2" class="step-box card">
       <h2>環節 2: 點解受歡迎？點解唔受歡迎？</h2>
       <div id="stu-step2-input">
-        <label>針對最高票的「A餐 脆香雞扒飯」或最低票的「C餐 粟米青豆肉碎飯」發表想法：</label>
+        <label>選擇你想評價的餐盒：</label>
+        <select id="step2-target-meal"></select>
         <select id="step2-type">
-          <option value="受歡迎原因">好受歡迎的原因 (點解咁多人鐘意？)</option>
+          <option value="受歡迎原因">好受歡迎的原因 (點解咁吸引？)</option>
           <option value="唔受歡迎原因">唔受歡迎的原因 (點解無人揀？)</option>
         </select>
-        <textarea id="step2-text" placeholder="例如：炸得香脆但醬汁好咸 / 雖然健康但蔬菜煮到黃晒唔想食..."></textarea>
+        <textarea id="step2-text" placeholder="例如：炸皮酥脆好香口 / 醬汁多但太咸 / 菜色暗沉無食慾..."></textarea>
         <button onclick="submitStep2Reason()">送出想法</button>
       </div>
-      <h3 style="margin-top: 25px;">💡 大家的反思與意見：</h3>
-      <div id="step2-list" style="max-height: 200px; overflow-y: auto; background: #f1f5f9; padding: 10px; border-radius: 6px;"></div>
+      <h3 style="margin-top: 20px;">💡 全班觀點實時牆：</h3>
+      <div id="step2-list" style="max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 6px;"></div>
     </div>
 
-    <!-- ==================== 環節 3: 自由發表文字雲 ==================== -->
+    <!-- ==================== 環節 3: 文字雲 ==================== -->
     <div id="step-3" class="step-box card">
-      <h2>環節 3: 你心目中嘅「最佳餐盒」係點？</h2>
-      <p>請輸入 1-2 個關鍵字詞描述你理想中的最佳餐盒（例如：少鹽、好味、色彩繽紛、飽肚、多蔬菜）。</p>
+      <h2>環節 3: 你心目中嘅「最佳餐盒」要具備甚麼條件？</h2>
+      <p>請輸入 1-2 個詞彙表達你心目中完美餐盒的特質：</p>
       <div class="grid-2">
         <div>
-          <input type="text" id="step3-word" placeholder="輸入關鍵詞..." maxlength="10">
+          <input type="text" id="step3-word" placeholder="例如：少油、好食、色彩繽紛、高纖" maxlength="8">
           <button onclick="submitStep3Word()">送出詞彙</button>
         </div>
         <div>
-          <canvas id="wordCloudCanvas" width="450" height="200" style="background:#f1f5f9; border-radius:6px;"></canvas>
+          <canvas id="wordCloudCanvas" width="450" height="200" style="background:#f8fafc; border-radius:6px;"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 環節 4: 分組分析營養價值 ==================== -->
+    <!-- ==================== 環節 4: 自行找出指派餐盒的營養價值 ==================== -->
     <div id="step-4" class="step-box card">
-      <h2>環節 4: 科學檢測 —— 現有餐盒營養大解剖</h2>
-      <p>請依據「三低一高」（低脂、低糖、低鹽、高纖）檢驗下列現成餐盒：</p>
+      <h2>環節 4: 科學探究 —— 查出你組別指派餐盒的營養價值</h2>
+      <div style="background:#eff6ff; padding:12px; border-radius:8px; margin-bottom:15px;">
+        <strong id="assigned-meal-title">你組別獲分配的餐盒：載入中...</strong>
+        <p style="font-size:13px; margin:4px 0 0;">請小組觀察圖片，利用營養資料庫/手冊，合力查出並輸入這份餐盒的營養數據：</p>
+      </div>
+      
       <div class="grid-2">
-        <div style="border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
-          <h4>🍗 A餐: 脆香雞扒配白汁飯</h4>
-          <p>熱量: 820 kcal | 鈉: 1100mg <span class="badge badge-red">鈉超標</span></p>
-          <p>蔬菜量: 半份 | 穀物: 4份 (白飯精緻澱粉)</p>
-          <p><strong>科學評語：</strong> 高脂高鈉，蔬菜嚴重不足。</p>
+        <div style="text-align:center;">
+          <img id="assigned-meal-img" class="meal-img" style="height:220px;" src="" alt="餐盒圖片">
         </div>
-        <div style="border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
-          <h4>🥦 C餐: 清水粟米青豆肉碎糙米飯</h4>
-          <p>熱量: 450 kcal | 鈉: 320mg <span class="badge badge-green">低鈉</span></p>
-          <p>蔬菜量: 2.5份 | 穀物: 2份 (高纖糙米)</p>
-          <p><strong>科學評語：</strong> 營養極佳，但烹調手法味道欠吸引。</p>
+        <div>
+          <label>估算熱量 (kcal)：</label>
+          <input type="number" id="nutri-cal" placeholder="例如：750">
+          <label>估算鈉含量 (mg)：</label>
+          <input type="number" id="nutri-na" placeholder="例如：1200 (注意：每日建議上限約 2000mg)">
+          <label>「穀物 : 蔬菜 : 肉類」大概比例：</label>
+          <input type="text" id="nutri-ratio" placeholder="例如：4 : 0.5 : 2 (嚴重缺菜)">
+          <label>科學健康檢核結論：</label>
+          <select id="nutri-verdict">
+            <option value="高鈉/多油 (需改善)">🔴 高鈉/多油 (需改善)</option>
+            <option value="少蔬菜/比例失衡">🟡 纖維缺乏/比例失衡</option>
+            <option value="三低一高均衡健康">🟢 均衡健康但可能不吸引</option>
+          </select>
+          <button onclick="submitNutriAnalysis()">提交小組分析結果</button>
         </div>
-      </div>
-      <div style="margin-top: 15px;">
-        <label>你的小組評檢結果小結：</label>
-        <input type="text" id="step4-input" placeholder="例如：發現最香口的餐盒鈉含量高達1100mg，遠超小學生午餐標準！">
-        <button onclick="alert('小組檢驗已記錄！')">提交評估</button>
       </div>
     </div>
 
-    <!-- ==================== 環節 5: 共同檢視結果 ==================== -->
+    <!-- ==================== 環節 5: 檢視全部6款分析 ==================== -->
     <div id="step-5" class="step-box card">
-      <h2>環節 5: 共同檢視 —— 原來全都不合心意？</h2>
-      <div style="background: #eff6ff; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 15px;">
-        <strong>教師引導總結：</strong><br>
-        「A餐雖然好食，但油脂同鹽分超標，長期食對心血管同體重有不良影響；C餐雖然合乎科學營養，但味道賣相唔受同學歡迎。<strong>竟然無一款餐盒同時符合『好食』同『健康』！</strong>」
+      <h2>環節 5: 共同檢視 6 款餐盒分析結果</h2>
+      <p>各組探究成果彙整：有沒有任何一款餐盒能夠兼顧「高營養價值」與「同學喜愛」？</p>
+      <div id="all-nutri-grid" class="grid-3"></div>
+      <div style="margin-top:15px; background:#fee2e2; border-left:4px solid var(--danger); padding:10px; font-weight:bold; color:var(--danger);">
+        ⚠️ 檢視發現：受歡迎的餐盒鈉與脂肪嚴重偏高，健康的餐盒卻缺乏吸引力，現成餐盒無一達標！
       </div>
-      <p style="text-align: center; font-size: 18px; font-weight: bold; color: var(--danger);">
-        ⚠️ 結論：現有的餐盒都未能成為全班心目中的「最佳餐盒」！
-      </p>
     </div>
 
-    <!-- ==================== 環節 6: 個人設計餐盒 ==================== -->
+    <!-- ==================== 環節 6: 個人構想 ==================== -->
     <div id="step-6" class="step-box card">
-      <h2>環節 6: 構想 —— 你想要一份怎樣的餐盒？</h2>
+      <h2>環節 6: 構想 —— 你心目中理想的餐盒是怎樣？</h2>
       <p>請為你自己量身設計一份餐盒，落實「穀物:蔬菜:肉類 = 3:2:1」比例，並列出主要營養價值：</p>
       <div class="grid-2">
         <div>
           <label>餐盒名稱：</label>
-          <input type="text" id="p-box-name" placeholder="例如：彩虹照燒雞胸飯">
+          <input type="text" id="p-box-name" placeholder="例如：彩虹照燒三文魚糙米飯">
           <label>穀物類 (佔 3 份)：</label>
-          <input type="text" id="p-grain" placeholder="例如：紅米混白飯 (富含維他命B及膳食纖維)">
+          <input type="text" id="p-grain" placeholder="例如：糙米混燕麥飯 (富含維他命B)">
           <label>蔬菜類 (佔 2 份)：</label>
-          <input type="text" id="p-veg" placeholder="例如：西蘭花 + 車厘茄 (維他命C、抗氧化)">
+          <input type="text" id="p-veg" placeholder="例如：粟米筍 + 炒彩椒 (多膳食纖維)">
           <label>肉類/蛋白質 (佔 1 份)：</label>
-          <input type="text" id="p-protein" placeholder="例如：香草烤雞胸肉 (優質蛋白質、低脂肪)">
+          <input type="text" id="p-protein" placeholder="例如：香煎三文魚塊 (優質Omega-3)">
         </div>
-        <div>
-          <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-            <span style="font-size: 40px;">🍱</span>
-            <p><strong>3 : 2 : 1 黃金比例驗證</strong></p>
-            <p style="font-size: 13px; color: #64748b; text-align: center;">確保提供足夠能量支持下午學習，同時保持腸道健康及肌肉生長！</p>
-          </div>
+        <div style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
+          <span style="font-size:45px;">🍱</span>
+          <h4>落實 3:2:1 體積黃金比例</h4>
+          <p style="font-size:13px; color:#64748b; text-align:center;">兼顧下午學習精力、免疫力與腸道健康。</p>
         </div>
       </div>
-      <button onclick="submitPersonalBox()">確認提交我的個人餐盒</button>
+      <button onclick="submitPersonalBox()">確認發送個人餐盒構想</button>
     </div>
 
-    <!-- ==================== 環節 7: 同學發表展示 ==================== -->
+    <!-- ==================== 環節 7: 成果展示 ==================== -->
     <div id="step-7" class="step-box card">
-      <h2>環節 7: 同學優秀方案展示</h2>
-      <p>大屏幕投屏時間：欣賞同學如何兼顧好滋味與高營養！</p>
-      <div id="showcase-list" class="grid-2">
-        <!-- 即時呈現提交的餐盒 -->
-      </div>
+      <h2>環節 7: 挑選同學發表概念</h2>
+      <p>公屏投射：欣賞同學如何兼顧好滋味與高營養！</p>
+      <div id="showcase-list" class="grid-2"></div>
     </div>
 
-    <!-- ==================== 環節 8: 四人共識小組建模 ==================== -->
+    <!-- ==================== 環節 8: 小組共識妥協 ==================== -->
     <div id="step-8" class="step-box card">
       <h2>環節 8: 一人計短 —— 四人小組共創妥協方案</h2>
-      <p>四人各有喜好，點樣妥協出一個「四個人都滿意」而且「符合 3:2:1 比例」的黃金餐盒？</p>
-      <div style="background: #fefce8; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #fef08a;">
-        <strong>協商約定：</strong> 每位組員必須貢獻 1 項個人喜好的食材或烹調手法（例如：少少醬汁、要有脆口口感等）。
-      </div>
-      <label>小組名稱 / 組別：</label>
-      <input type="text" id="g-name" placeholder="例如：第 3 組">
-      <label>組內達成共識的終極菜單：</label>
-      <textarea id="g-menu" placeholder="寫出主食、配菜、肉類及照顧到4位組員口味的妥協策略..."></textarea>
-      <button onclick="submitGroupBox()">代表小組提交終極方案海報</button>
-
-      <div id="group-results-list" style="margin-top: 20px;"></div>
+      <p>小組四人各有口味愛好，如何協商妥協出一份四人都接受的終極餐盒？</p>
+      <label>組別：</label>
+      <input type="text" id="g-name" placeholder="例如：第 2 組">
+      <label>達成的妥協協議（每人至少容納了哪種元素？）：</label>
+      <input type="text" id="g-compromise" placeholder="例如：子聰想要脆皮，我們用少油氣炸雞柳妥協；佩佩要多菜，我們加了甜栗米...">
+      <label>終極 3:2:1 菜單內容：</label>
+      <textarea id="g-menu" placeholder="完整寫出主食、配菜及蛋白質內容..."></textarea>
+      <button onclick="submitGroupBox()">提交小組終極提案</button>
+      <div id="group-results-list" style="margin-top:20px;"></div>
     </div>
 
   </div>
 
   <script>
-    // ---------------- 全局跨分頁廣播通道 (Web Sync) ----------------
-    const channel = new BroadcastChannel('lunchbox_classroom_channel');
+    const channel = new BroadcastChannel('lunchbox_advanced_channel');
 
-    // 課堂全局狀態
+    // 預設 6 款餐盒資料 (含自帶圖片與佔位圖)
+    const defaultMeals = [
+      { id: 1, name: "A餐: 脆香炸雞扒白汁飯", img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=80" },
+      { id: 2, name: "B餐: 鮮茄焗厚切豬扒飯", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" },
+      { id: 3, name: "C餐: 粟米肉碎糙米飯", img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&q=80" },
+      { id: 4, name: "D餐: 日式咖喱牛肉烏冬", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=400&q=80" },
+      { id: 5, name: "E餐: 葡汁時蔬雜菌燴飯", img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80" },
+      { id: 6, name: "F餐: 蜜汁叉燒雙蛋飯", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80" }
+    ];
+
     let appState = {
       currentStep: 1,
+      meals: defaultMeals,
+      votes: { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 },
       step2Reasons: [],
       step3Words: {},
+      nutriAnalyses: {}, // 各組上傳的營養數據
       personalBoxes: [],
       groupBoxes: []
     };
 
-    // 初始化讀取 LocalStorage 或使用預設
-    function loadState() {
-      const saved = localStorage.getItem('LUNCHBOX_STATE');
+    let myStudentGroup = "1";
+    let chartInstance = null;
+
+    function init() {
+      const saved = localStorage.getItem('ADV_LUNCHBOX_STATE');
       if (saved) {
         appState = JSON.parse(saved);
       }
@@ -238,20 +274,18 @@
     }
 
     function saveAndBroadcast() {
-      localStorage.setItem('LUNCHBOX_STATE', JSON.stringify(appState));
+      localStorage.setItem('ADV_LUNCHBOX_STATE', JSON.stringify(appState));
       channel.postMessage({ type: 'STATE_UPDATE', data: appState });
       syncView();
     }
 
-    // 監聽其他分頁更新
-    channel.onmessage = (event) => {
-      if (event.data.type === 'STATE_UPDATE') {
-        appState = event.data.data;
+    channel.onmessage = (e) => {
+      if (e.data.type === 'STATE_UPDATE') {
+        appState = e.data.data;
         syncView();
       }
     };
 
-    // ---------------- 身分切換與進度跳轉 ----------------
     function switchRole(role) {
       document.getElementById('teacher-control-bar').style.display = role === 'teacher' ? 'flex' : 'none';
       document.getElementById('student-header').style.display = role === 'student' ? 'flex' : 'none';
@@ -262,96 +296,195 @@
       appState.currentStep = step;
       saveAndBroadcast();
     }
-
     function nextStep() { goToStep(appState.currentStep + 1); }
     function prevStep() { goToStep(appState.currentStep - 1); }
 
     function resetAllData() {
-      if (confirm("確定要重設全班課堂數據？所有提交都會被清空。")) {
-        localStorage.removeItem('LUNCHBOX_STATE');
-        appState = { currentStep: 1, step2Reasons: [], step3Words: {}, personalBoxes: [], groupBoxes: [] };
-        saveAndBroadcast();
+      if (confirm("確定要重設所有數據嗎？餐盒設定與投票將回歸預設。")) {
+        localStorage.removeItem('ADV_LUNCHBOX_STATE');
+        location.reload();
       }
     }
 
-    // ---------------- 視圖同步刷新邏輯 ----------------
+    function updateStudentGroup(g) {
+      myStudentGroup = g;
+      syncView();
+    }
+
+    // ---------------- 教師設定 6 款餐盒與上載圖片 ----------------
+    function openMealConfig() {
+      const p = document.getElementById('meal-config-panel');
+      p.style.display = p.style.display === 'none' ? 'block' : 'none';
+      const container = document.getElementById('meal-inputs-container');
+      container.innerHTML = appState.meals.map((m, idx) => `
+        <div class="meal-card">
+          <strong>餐盒 ${idx + 1}</strong>
+          <input type="text" id="cfg-name-${idx}" value="${m.name}">
+          <img id="cfg-preview-${idx}" class="meal-img" src="${m.img}" style="height:90px; margin-bottom:6px;">
+          <input type="file" accept="image/*" onchange="previewImg(event, ${idx})">
+        </div>
+      `).join('');
+    }
+
+    function previewImg(event, idx) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById(`cfg-preview-${idx}`).src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveMealConfig() {
+      for (let i = 0; i < 6; i++) {
+        appState.meals[i].name = document.getElementById(`cfg-name-${i}`).value;
+        appState.meals[i].img = document.getElementById(`cfg-preview-${i}`).src;
+      }
+      document.getElementById('meal-config-panel').style.display = 'none';
+      saveAndBroadcast();
+      alert("6 款餐盒已更新並推送到所有學生裝置！");
+    }
+
+    // ---------------- 各環節介面渲染 ----------------
     function syncView() {
-      // 1. 切換顯示對應的 Step Panel
       for (let i = 1; i <= 8; i++) {
-        const panel = document.getElementById(`step-${i}`);
-        if (panel) {
-          panel.classList.toggle('active', i === appState.currentStep);
-        }
+        const el = document.getElementById(`step-${i}`);
+        if (el) el.classList.toggle('active', i === appState.currentStep);
       }
-
-      // 2. 更新頂部狀態文字
       document.getElementById('current-step-display').innerText = `環節 ${appState.currentStep} / 8`;
-      document.getElementById('step-badge').innerText = `同步在：環節 ${appState.currentStep}`;
+      document.getElementById('step-badge').innerText = `同步：環節 ${appState.currentStep}`;
 
-      // 3. 渲染環節特有元件
-      if (appState.currentStep === 1) renderStep1Chart();
-      if (appState.currentStep === 2) renderStep2List();
-      if (appState.currentStep === 3) renderStep3Cloud();
-      if (appState.currentStep === 7) renderStep7Showcase();
-      if (appState.currentStep === 8) renderStep8GroupResults();
+      if (appState.currentStep === 1) renderStep1();
+      if (appState.currentStep === 2) renderStep2();
+      if (appState.currentStep === 3) renderStep3();
+      if (appState.currentStep === 4) renderStep4();
+      if (appState.currentStep === 5) renderStep5();
+      if (appState.currentStep === 7) renderStep7();
+      if (appState.currentStep === 8) renderStep8();
     }
 
-    // ---------------- 各環節核心數據邏輯 ----------------
+    // Step 1: 投票與圖表
+    function renderStep1() {
+      const grid = document.getElementById('vote-options-grid');
+      grid.innerHTML = appState.meals.map(m => `
+        <div class="meal-card">
+          <img class="meal-img" src="${m.img}">
+          <h4 style="margin:8px 0;">${m.name}</h4>
+          <button onclick="castVote(${m.id})">投它一票 🍱</button>
+        </div>
+      `).join('');
 
-    // Step 1: 圖表
-    let chartInstance = null;
-    function renderStep1Chart() {
       const ctx = document.getElementById('voteChart');
       if (!ctx) return;
       if (chartInstance) chartInstance.destroy();
       chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['A餐: 脆香雞扒飯', 'B餐: 洋蔥豬扒飯', 'C餐: 粟米肉碎飯', 'D餐: 葡汁時蔬飯'],
+          labels: appState.meals.map(m => m.name.split(':')[0]),
           datasets: [{
             label: '票數',
-            data: [20, 8, 2, 4],
-            backgroundColor: ['#ef4444', '#f97316', '#10b981', '#3b82f6']
+            data: appState.meals.map(m => appState.votes[m.id] || 0),
+            backgroundColor: ['#ef4444', '#f97316', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899']
           }]
         },
         options: { responsive: true, plugins: { legend: { display: false } } }
       });
     }
 
-    // Step 2: 正反理由提交
+    function castVote(id) {
+      appState.votes[id] = (appState.votes[id] || 0) + 1;
+      alert("投票成功！");
+      saveAndBroadcast();
+    }
+
+    // Step 2: 正反論點
+    function renderStep2() {
+      const select = document.getElementById('step2-target-meal');
+      if (select.children.length === 0) {
+        select.innerHTML = appState.meals.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+      }
+      const listEl = document.getElementById('step2-list');
+      listEl.innerHTML = appState.step2Reasons.map(r => `
+        <div style="margin-bottom:6px; font-size:14px;">
+          <strong>[${r.target}]</strong> <span class="badge ${r.type.includes('受歡迎') ? 'badge-red' : 'badge-yellow'}">${r.type}</span>
+          <span>${r.text}</span>
+        </div>
+      `).join('') || '<div style="color:#94a3b8;">等待同學送出觀點...</div>';
+    }
+
     function submitStep2Reason() {
+      const target = document.getElementById('step2-target-meal').value;
       const type = document.getElementById('step2-type').value;
       const text = document.getElementById('step2-text').value.trim();
       if (!text) return;
-      appState.step2Reasons.push({ type, text });
+      appState.step2Reasons.push({ target, type, text });
       document.getElementById('step2-text').value = '';
       saveAndBroadcast();
     }
-    function renderStep2List() {
-      const listEl = document.getElementById('step2-list');
-      if (!listEl) return;
-      listEl.innerHTML = appState.step2Reasons.map(r => `
-        <div style="margin-bottom:6px; font-size:14px;">
-          <span class="badge ${r.type.includes('受歡迎') ? 'badge-red' : 'badge-yellow'}">${r.type}</span>
-          <span>${r.text}</span>
-        </div>
-      `).join('') || '<div style="color:#94a3b8;">暫無回應，請同學輸入...</div>';
-    }
 
     // Step 3: 文字雲
+    function renderStep3() {
+      const canvas = document.getElementById('wordCloudCanvas');
+      const list = Object.entries(appState.step3Words).map(([w, s]) => [w, s * 12 + 10]);
+      if (list.length === 0) list.push(['健康', 22], ['好食', 20], ['高纖', 16]);
+      WordCloud(canvas, { list: list, weightFactor: 1, color: 'random-dark' });
+    }
     function submitStep3Word() {
-      const word = document.getElementById('step3-word').value.trim();
-      if (!word) return;
-      appState.step3Words[word] = (appState.step3Words[word] || 0) + 1;
+      const w = document.getElementById('step3-word').value.trim();
+      if (!w) return;
+      appState.step3Words[w] = (appState.step3Words[w] || 0) + 1;
       document.getElementById('step3-word').value = '';
       saveAndBroadcast();
     }
-    function renderStep3Cloud() {
-      const canvas = document.getElementById('wordCloudCanvas');
-      if (!canvas) return;
-      const list = Object.entries(appState.step3Words).map(([word, size]) => [word, size * 12 + 10]);
-      if (list.length === 0) list.push(['好食', 25], ['多肉汁', 18], ['平', 15]);
-      WordCloud(canvas, { list: list, weightFactor: 1, color: 'random-dark' });
+
+    // Step 4: 自主探究營養
+    function renderStep4() {
+      const assignedIndex = (parseInt(myStudentGroup, 10) - 1) % 6;
+      const assignedMeal = appState.meals[assignedIndex];
+      document.getElementById('assigned-meal-title').innerText = `第 ${myStudentGroup} 組獲分配檢測：${assignedMeal.name}`;
+      document.getElementById('assigned-meal-img').src = assignedMeal.img;
+    }
+
+    function submitNutriAnalysis() {
+      const cal = document.getElementById('nutri-cal').value;
+      const na = document.getElementById('nutri-na').value;
+      const ratio = document.getElementById('nutri-ratio').value;
+      const verdict = document.getElementById('nutri-verdict').value;
+      if (!cal || !na || !ratio) {
+        alert("請填齊熱量、鈉含量及比例估算！");
+        return;
+      }
+      const assignedIndex = (parseInt(myStudentGroup, 10) - 1) % 6;
+      appState.nutriAnalyses[assignedIndex] = {
+        group: myStudentGroup,
+        mealName: appState.meals[assignedIndex].name,
+        img: appState.meals[assignedIndex].img,
+        cal, na, ratio, verdict
+      };
+      saveAndBroadcast();
+      alert("小組科學探究數據已提交！");
+    }
+
+    // Step 5: 全班檢視 6 款分析
+    function renderStep5() {
+      const grid = document.getElementById('all-nutri-grid');
+      grid.innerHTML = appState.meals.map((m, idx) => {
+        const data = appState.nutriAnalyses[idx];
+        return `
+          <div class="meal-card" style="text-align:left;">
+            <img class="meal-img" src="${m.img}" style="height:110px;">
+            <h4 style="margin:6px 0;">${m.name}</h4>
+            ${data ? `
+              <p style="font-size:13px; margin:2px 0;"><strong>檢測小組：</strong>第 ${data.group} 組</p>
+              <p style="font-size:13px; margin:2px 0;"><strong>熱量/鈉：</strong>${data.cal} kcal | ${data.na} mg</p>
+              <p style="font-size:13px; margin:2px 0;"><strong>比例：</strong>${data.ratio}</p>
+              <span class="badge ${data.verdict.includes('高鈉') ? 'badge-red' : (data.verdict.includes('均衡') ? 'badge-green' : 'badge-yellow')}">${data.verdict}</span>
+            ` : `<p style="font-size:13px; color:#94a3b8;">探究分析中...</p>`}
+          </div>
+        `;
+      }).join('');
     }
 
     // Step 6: 個人餐盒提交
@@ -361,57 +494,53 @@
       const veg = document.getElementById('p-veg').value.trim();
       const protein = document.getElementById('p-protein').value.trim();
       if (!name || !grain || !veg || !protein) {
-        alert("請完整填寫餐盒每一項要素！");
+        alert("請填寫所有項目以落實 3:2:1 比例！");
         return;
       }
       appState.personalBoxes.push({ name, grain, veg, protein });
-      alert("你的個人餐盒已經成功發送給老師！");
+      alert("已成功送出個人設計方案！");
       saveAndBroadcast();
     }
 
-    // Step 7: 成果公屏投射
-    function renderStep7Showcase() {
+    // Step 7: 成果展示
+    function renderStep7() {
       const showcase = document.getElementById('showcase-list');
-      if (!showcase) return;
       showcase.innerHTML = appState.personalBoxes.map(box => `
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px;">
-          <h4 style="margin:0 0 8px; color:var(--primary);">🍱 ${box.name}</h4>
-          <p style="font-size:13px; margin:4px 0;"><strong>🌾 穀物(3):</strong> ${box.grain}</p>
-          <p style="font-size:13px; margin:4px 0;"><strong>🥗 蔬菜(2):</strong> ${box.veg}</p>
-          <p style="font-size:13px; margin:4px 0;"><strong>🍗 肉類(1):</strong> ${box.protein}</p>
+        <div style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:12px;">
+          <h4 style="margin:0 0 6px; color:var(--primary);">🍱 ${box.name}</h4>
+          <p style="font-size:13px; margin:3px 0;">🌾 <strong>穀物 (3份):</strong> ${box.grain}</p>
+          <p style="font-size:13px; margin:3px 0;">🥗 <strong>蔬菜 (2份):</strong> ${box.veg}</p>
+          <p style="font-size:13px; margin:3px 0;">🍗 <strong>肉類 (1份):</strong> ${box.protein}</p>
         </div>
-      `).join('') || '<p style="color:#94a3b8;">等待同學在環節 6 提交方案...</p>';
+      `).join('') || '<p style="color:#94a3b8;">等待同學提交個人餐盒...</p>';
     }
 
-    // Step 8: 小組共識方案
+    // Step 8: 小組妥協成果
     function submitGroupBox() {
       const gName = document.getElementById('g-name').value.trim();
-      const gMenu = document.getElementById('g-menu').value.trim();
-      if (!gName || !gMenu) {
-        alert("請輸入組別與共識菜單！");
+      const compromise = document.getElementById('g-compromise').value.trim();
+      const menu = document.getElementById('g-menu').value.trim();
+      if (!gName || !compromise || !menu) {
+        alert("請完整填寫小組名稱、妥協協議及菜單！");
         return;
       }
-      appState.groupBoxes.push({ gName, gMenu });
-      document.getElementById('g-name').value = '';
-      document.getElementById('g-menu').value = '';
+      appState.groupBoxes.push({ gName, compromise, menu });
       saveAndBroadcast();
-    }
-    function renderStep8GroupResults() {
-      const container = document.getElementById('group-results-list');
-      if (!container) return;
-      container.innerHTML = "<h3>🤝 各小組協商妥協成果提案：</h3>" + (appState.groupBoxes.map(g => `
-        <div style="background:#f1f5f9; border-left:4px solid var(--success); padding:10px; margin-bottom:10px;">
-          <strong>${g.gName}：</strong>
-          <p style="margin:5px 0 0;">${g.gMenu}</p>
-        </div>
-      `).join('') || '<p style="color:#94a3b8;">等待小組提交提案中...</p>');
+      alert("小組共識提案已提交！");
     }
 
-    // 初始化啟動
-    window.onload = () => {
-      loadState();
-    };
+    function renderStep8() {
+      const list = document.getElementById('group-results-list');
+      list.innerHTML = "<h3>🤝 各組終極妥協海報：</h3>" + (appState.groupBoxes.map(g => `
+        <div style="background:#f8fafc; border-left:4px solid var(--success); padding:10px; margin-bottom:10px;">
+          <h4 style="margin:0 0 4px;">${g.gName}</h4>
+          <p style="font-size:13px; margin:2px 0; color:#d97706;"><strong>🤝 妥協策略：</strong>${g.compromise}</p>
+          <p style="font-size:14px; margin:4px 0;"><strong>🍱 3:2:1 菜單：</strong>${g.menu}</p>
+        </div>
+      `).join('') || '<p style="color:#94a3b8;">等待小組協商提交中...</p>');
+    }
+
+    window.onload = init;
   </script>
 </body>
 </html>
-
