@@ -27,13 +27,13 @@
     .header-title { font-size: 24px; font-weight: 800; letter-spacing: 0.5px; }
     .header-subtitle { margin-top: 8px; font-size: 14px; opacity: 0.92; background: rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 8px; border-left: 4px solid var(--accent); }
 
-    /* 全域計時器橫幅 */
+    /* 計時器 */
     .timer-banner { background: #0f172a; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .timer-clock { font-family: monospace; font-size: 22px; font-weight: bold; color: #38bdf8; background: #1e293b; padding: 2px 12px; border-radius: 6px; letter-spacing: 2px; }
     .timer-clock.danger { color: #f87171; animation: pulse 1s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-    /* 教師中控專用列 */
+    /* 教師操控列 */
     .teacher-ctrl { background: #ffffff; border-bottom: 3px solid var(--primary); padding: 12px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05); }
 
     /* 容器與卡片 */
@@ -72,10 +72,10 @@
     .badge-yellow { background: #fef3c7; color: #92400e; }
     .badge-red { background: #fee2e2; color: #991b1b; }
 
-    /* 畫布手繪區 */
+    /* 手繪區 */
     .canvas-box { border: 2px dashed #94a3b8; border-radius: 10px; background: #ffffff; touch-action: none; cursor: crosshair; }
 
-    /* 步進區塊控制 */
+    /* 進程控制 */
     .step-box { display: none; }
     .step-box.active { display: block; animation: fadeIn 0.25s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -97,8 +97,8 @@
       <div>
         <label style="margin-right: 6px; font-weight:bold; font-size:14px;">切換端視圖：</label>
         <select id="role-selector" style="width: auto; margin:0; padding:6px 12px; border-radius:6px;" onchange="handleRoleChange(this.value)">
-          <option value="student">學生端 (平板操作)</option>
-          <option value="teacher">教師端 (中控台 / 投影)</option>
+          <option value="student">學生端 </option>
+          <option value="teacher">教師端</option>
         </select>
       </div>
     </div>
@@ -107,7 +107,7 @@
     </div>
   </header>
 
-  <!-- 全班計時器橫幅 (所有端皆同步跳動) -->
+  <!-- 計時器 (同步跳動) -->
   <div class="timer-banner">
     <div style="display:flex; align-items:center; gap:8px;">
       <span>⏳ 課堂計時：</span>
@@ -117,7 +117,7 @@
       <button class="secondary" style="padding:4px 10px; font-size:13px;" onclick="adjustTimer(60)">+1 分鐘</button>
       <button class="accent" style="padding:4px 10px; font-size:13px;" onclick="startTimer()">▶️ 開始計時</button>
       <button class="secondary" style="padding:4px 10px; font-size:13px;" onclick="pauseTimer()">⏸️ 暫停</button>
-      <button class="secondary" style="padding:4px 10px; font-size:13px;" onclick="resetTimer(180)">重設3分</button>
+      <button class="secondary" style="padding:4px 10px; font-size:13px;" onclick="resetTimer(180)">重設</button>
     </div>
   </div>
 
@@ -125,7 +125,7 @@
   <div id="pwd-modal" class="modal-overlay">
     <div class="modal-card">
       <h3 style="margin-top:0;">🔒 教師身分驗證</h3>
-      <p style="font-size:13px; color:var(--text-muted);">請輸入沈主任與蕭主任之專用操作密碼：</p>
+      <p style="font-size:13px; color:var(--text-muted);">請輸入專用操作密碼：</p>
       <input type="password" id="teacher-pwd-input" placeholder="••••••••" style="text-align:center; font-size:20px; letter-spacing:6px;" onkeydown="if(event.key==='Enter') verifyTeacherPassword()">
       <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
         <button onclick="verifyTeacherPassword()">確認登入</button>
@@ -134,7 +134,7 @@
     </div>
   </div>
 
-  <!-- 教師中控功能列 (登入後顯示) -->
+  <!-- 教師操控列 -->
   <div id="teacher-control-bar" class="teacher-ctrl" style="display: none;">
     <strong>課堂進度推播：</strong>
     <button class="secondary" onclick="prevStep()">⬅️ 上一步</button>
@@ -142,17 +142,17 @@
     <button onclick="nextStep()">下一步 ➡️</button>
     
     <button class="accent" onclick="openGroupControlModal()">👥 分組指揮中心</button>
-    <button style="background:#0891b2;" onclick="openMealConfig()">⚙️ 自由增減餐盒與相片 (<span id="meal-count-badge">7</span>款)</button>
-    <button class="secondary" onclick="unlockAllVotesForTeacher()">🔄 解鎖全班投票限制</button>
-    <button class="danger-btn" style="margin-left: auto;" onclick="resetAllData()">⚠️ 重設全體數據</button>
+    <button style="background:#0891b2;" onclick="openMealConfig()">⚙️ 餐盒展示(<span id="meal-count-badge">7</span>款)</button>
+    <button class="secondary" onclick="unlockAllVotesForTeacher()">🔄 解投票限制</button>
+    <button class="danger-btn" style="margin-left: auto;" onclick="resetAllData()">⚠️ 重設數據</button>
   </div>
 
   <div class="container">
 
-    <!-- 學生身分與即時模式狀態列 -->
+    <!-- 學生模式狀態列 -->
     <div id="student-header" class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
       <div>
-        <span id="stu-mode-tag" class="badge badge-blue">個人操作模式</span>
+        <span id="stu-mode-tag" class="badge badge-blue">個人學習模式</span>
         <strong id="stu-name-label" style="margin-left: 10px; font-size:16px;">未登入</strong>
       </div>
       <div>
@@ -162,49 +162,49 @@
 
     <!-- 學生首次登入 -->
     <div id="student-login-card" class="card" style="border: 2px solid var(--primary); background: #eff6ff;">
-      <h3>👋 歡迎小廚神！請輸入你的班級、學號與姓名：</h3>
-      <input type="text" id="login-stu-name" placeholder="例如：5A (12) 蕭子軒">
-      <button onclick="registerStudent()">進入個人教室</button>
+      <h3>👋 歡迎小廚神！請輸入你的班別、學號與姓名：</h3>
+      <input type="text" id="login-stu-name" placeholder="例如：5D (40) 沈老師">
+      <button onclick="registerStudent()">進入個人學習教室</button>
     </div>
 
     <!-- 教師分組視窗 -->
     <div id="teacher-group-modal" class="card" style="display:none; border:2px solid #8b5cf6;">
       <h3>👥 教師分組指揮中心</h3>
-      <p style="font-size:13px; color:var(--text-muted);">系統將依照目前餐盒數量精確分配組別，點擊後學生端即時切換為「小組協同作業模式」。</p>
+      <p style="font-size:13px; color:var(--text-muted);">下一活動將切換為「小組學習模式」。</p>
       <div>
         <strong>目前在線學生總數：<span id="online-count">0</span> 人</strong>
         <div id="online-students-list" style="max-height:100px; overflow-y:auto; background:#f8fafc; padding:8px; margin:8px 0; border-radius:6px;"></div>
       </div>
-      <button class="accent" onclick="assignRandomGroups()">🎲 依餐盒數量自動分組並推播</button>
+      <button class="accent" onclick="assignRandomGroups()">🎲 分組並推播</button>
       <button class="secondary" onclick="document.getElementById('teacher-group-modal').style.display='none'">關閉</button>
     </div>
 
-    <!-- 教師動態餐盒與相片管理面板 -->
+    <!-- 餐盒管理面板 -->
     <div id="meal-config-panel" class="card" style="display:none; border:2px solid #0891b2;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>⚙️ 管理候選餐盒（可任意增減投票項目）</h3>
+        <h3>⚙️ 管理候選餐盒</h3>
         <button style="background:#16a34a;" onclick="addNewMealItem()">➕ 增加新餐盒</button>
       </div>
-      <p style="font-size:13px; color:var(--text-muted);">💡 支援任意新增或刪減，長條圖與投票按鈕皆即時聯動。上傳的相片會自動透過 Canvas 輕量化壓縮。</p>
+      <p style="font-size:13px; color:var(--text-muted);">💡 支援任意新增或刪減項目。</p>
       <div class="grid-dynamic" id="meal-inputs-container"></div>
       <div style="margin-top: 15px;">
-        <button style="background:#0891b2;" onclick="saveMealConfig()">儲存並即時發佈給全班</button>
+        <button style="background:#0891b2;" onclick="saveMealConfig()">儲存並即時發佈</button>
         <button class="secondary" onclick="document.getElementById('meal-config-panel').style.display='none'">關閉</button>
       </div>
     </div>
 
     <!-- ==================== 環節 1: 一人一票投票 ==================== -->
     <div id="step-1" class="step-box card">
-      <h2>📊 環節 1: 最受歡迎午餐盒投票與統計</h2>
+      <h2>📊 環節 1: 5D班同學最喜歡的午膳款式</h2>
       <div id="student-vote-section">
-        <h3>🗳️ 【個人操作】請投下你平時最想吃的一票（每人限投一次）：</h3>
+        <h3>🗳️ 請投下你最喜歡的飯餐（每人限投一次）：</h3>
         <div id="vote-lock-msg" style="display:none; background:#ecfdf5; border-left:4px solid var(--success); padding:10px; margin-bottom:12px; font-weight:bold; color:#065f46;">
-          ✅ 你已成功投票！按鈕已鎖定，請留意大屏幕投票長條圖實時更新。
+          ✅ 你已成功投票！按鈕已鎖定，請留意投票結果實時更新。
         </div>
         <div class="grid-dynamic" id="vote-options-grid"></div>
       </div>
       <hr style="border:none; border-top:1px solid #e2e8f0; margin: 24px 0;">
-      <h3>📈 全班投票實時長條圖</h3>
+      <h3>📈 全班投票實時統</h3>
       <div style="max-width: 800px; margin: auto;">
         <canvas id="voteChart"></canvas>
       </div>
@@ -212,14 +212,14 @@
 
     <!-- ==================== 環節 2: 原因分析 ==================== -->
     <div id="step-2" class="step-box card">
-      <h2>💬 環節 2: 點解受歡迎？點解唔受歡迎？</h2>
-      <label>選擇你想評價的餐盒：</label>
+      <h2>💬 環節 2: 分析原因</h2>
+      <label></label>最受歡的餐款：</label>
       <select id="step2-target-meal"></select>
       <select id="step2-type">
-        <option value="受歡迎原因">好受歡迎的原因 (點解咁吸引？)</option>
-        <option value="唔受歡迎原因">唔受歡迎的原因 (點解無人揀？)</option>
+        <option value="受歡迎原因">你認為它受歡迎的原因是什麼？</option>
+        <option value="唔受歡迎原因">你認為它不受歡迎的原因是什麼？</option>
       </select>
-      <textarea id="step2-text" placeholder="寫出具體原因（例如：炸粉外皮酥脆好香口 / 雖然少油但蔬菜煮得暗黃無味道...）"></textarea>
+      <textarea id="step2-text" placeholder="寫出具體原因（例如：多汁 /好味...）"></textarea>
       <button onclick="submitStep2Reason()">送出個人想法</button>
       <h3 style="margin-top: 24px;">💡 全班小廚神觀點牆：</h3>
       <div id="step2-list" style="max-height: 220px; overflow-y: auto; background: #f8fafc; padding: 12px; border-radius: 8px;"></div>
@@ -227,12 +227,12 @@
 
     <!-- ==================== 環節 3: 文字雲 ==================== -->
     <div id="step-3" class="step-box card">
-      <h2>☁️ 環節 3: 你心目中嘅「最佳餐盒」條件？</h2>
+      <h2>☁️ 環節 3: 你心目中「最佳餐盒」的條件是什麼？</h2>
       <div class="grid-2">
         <div>
-          <label>【個人操作】輸入 1 個關鍵詞：</label>
-          <input type="text" id="step3-word" placeholder="例如：少油、高纖、色彩繽紛" maxlength="8">
-          <button onclick="submitStep3Word()">送出詞彙</button>
+          <label>輸入 1 個你認為最重要的因素：</label>
+          <input type="text" id="step3-word" placeholder="例如：色彩繽紛" maxlength="8">
+          <button onclick="submitStep3Word()">送意見</button>
         </div>
         <div>
           <canvas id="wordCloudCanvas" width="450" height="200" style="background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;"></canvas>
@@ -240,28 +240,28 @@
       </div>
     </div>
 
-    <!-- ==================== 環節 4: 小組探究營養 (含蕭Sir平台連結) ==================== -->
+    <!-- ==================== 環節 4: 小組探究營養 ==================== -->
     <div id="step-4" class="step-box card">
-      <h2>🔬 環節 4: 小組實時協同 —— 自行查出指派餐盒的營養價值</h2>
+      <h2>🔬 環節 4: 分組進行營養分析 ——找出餐盒的營養價值</h2>
       
-      <!-- 蕭Sir青春食力平台專屬提示橫幅 -->
+      <!-- 蕭Sir---青春食力平台 -->
       <div class="external-tool-banner">
         <div>
-          <strong style="font-size:16px; color:#166534;">🌟 探究小工具推薦：</strong>
+          <strong style="font-size:16px; color:#166534;">🌟 探究工具推薦：</strong>
           <div style="font-size:14px; color:#15803d; margin-top:2px;">
             可以利用蕭sir的青春食力平台進行分析及紀錄！
           </div>
         </div>
         <a href="https://breakfastai-xqnwm3tc.manus.space/" target="_blank" style="text-decoration:none;">
           <button type="button" class="success" style="box-shadow:0 2px 8px rgba(16,185,129,0.3);">
-            🚀 開啟「蕭Sir青春食力平台」
+            🚀 點擊開啟「青春食力」
           </button>
         </a>
       </div>
 
       <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:12px; margin-bottom:15px; border-radius:6px;">
         <strong id="assigned-meal-title">等待教師分組中...</strong>
-        <p style="font-size:13px; margin:4px 0 0;">🤝 同組組員已連線，組內任一位同學輸入，全組平板即時同步填充！</p>
+        <p style="font-size:13px; margin:4px 0 0;">🤝 你的組員已連線，組員輸入，全組同步！互相尊重，積極投入，嚴禁吵架！</p>
       </div>
       
       <div class="grid-2">
@@ -269,50 +269,50 @@
           <img id="assigned-meal-img" class="meal-img" style="height:230px;" src="" alt="餐盒圖片">
         </div>
         <div>
-          <label>小組估算熱量 (kcal)：</label>
+          <label>熱量 (kcal)：</label>
           <input type="number" id="nutri-cal" placeholder="例如：820" oninput="broadcastGroupTyping('cal', this.value)">
-          <label>小組估算鈉含量 (mg)：</label>
+          <label>鈉含量 (mg)：</label>
           <input type="number" id="nutri-na" placeholder="例如：1250" oninput="broadcastGroupTyping('na', this.value)">
-          <label>小組估計「穀物 : 蔬菜 : 肉類」比例：</label>
+          <label>「穀物 : 蔬菜 : 肉類」比例：</label>
           <input type="text" id="nutri-ratio" placeholder="例如：4 : 0.5 : 2" oninput="broadcastGroupTyping('ratio', this.value)">
-          <label>健康檢核共識：</label>
+          <label>營養價值評估：</label>
           <select id="nutri-verdict" onchange="broadcastGroupTyping('verdict', this.value)">
             <option value="高鈉/多油 (需改善)">🔴 高鈉/多油 (需改善)</option>
-            <option value="纖維缺乏/比例失衡">🟡 纖維缺乏/比例失衡</option>
-            <option value="三低一高均衡健康">🟢 均衡健康但欠吸引力</option>
+            <option value="比例失衡">🟡 比例失衡</option>
+            <option value="三低一高均衡健康">🟢 營養均衡但欠吸引力</option>
           </select>
-          <button style="background:var(--success);" onclick="confirmGroupNutriSubmit()">確認提交小組分析結果</button>
+          <button style="background:var(--success);" onclick="confirmGroupNutriSubmit()">確認提交小組結果</button>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 環節 5: 全班檢視 ==================== -->
+    <!-- ==================== 環節 5: 全班共同檢視 ==================== -->
     <div id="step-5" class="step-box card">
-      <h2>🔎 環節 5: 檢視各組分析結果</h2>
-      <p>各組探究成果彙整：有沒有任何一款餐盒能夠兼顧「高營養價值」與「同學喜愛」？</p>
+      <h2>🔎 環節 5: 檢視結果</h2>
+      <p>想一想：有沒有一款餐盒能夠兼顧「高營養價值」與「同學喜愛」？</p>
       <div id="all-nutri-grid" class="grid-dynamic"></div>
       <div style="margin-top:16px; background:#fee2e2; border-left:4px solid var(--danger); padding:12px; font-weight:bold; color:var(--danger); border-radius:6px;">
-        ⚠️ 檢視結論：現有餐盒無一能同時滿足「美味度」與「3:2:1 健康比例」！
+        ⚠️ 結論：結果顯示現有餐盒無一款能同時滿足「美味度」與「3:2:1 健康比例」！
       </div>
     </div>
 
-    <!-- ==================== 環節 6: 個人創作 (文字+手繪+上載圖片) ==================== -->
+    <!-- ==================== 環節 6: 個人創作時間 ==================== -->
     <div id="step-6" class="step-box card">
-      <h2>🎨 環節 6: 【個人構想】你想要一份點樣的餐盒？</h2>
-      <p style="font-size:14px; color:var(--text-muted);">發揮創意！你可以填寫文字、使用電子畫板畫出設計，或直接上載圖片：</p>
+      <h2>🎨 環節 6: 你心目中的最佳飯餐是怎樣的？</h2>
+      <p style="font-size:14px; color:var(--text-muted);">發揮創意！你可以以文字、圖畫，或上載圖片：</p>
       
       <div class="grid-2">
         <div>
-          <label>餐盒名稱：</label>
+          <label>餐盒名稱（可以自創名稱）：</label>
           <input type="text" id="p-box-name" placeholder="例如：彩虹照燒雞胸糙米飯">
-          <label>穀物類 (佔 3 份)：</label>
-          <input type="text" id="p-grain" placeholder="例如：紅米混糙米 (維他命B群)">
-          <label>蔬菜類 (佔 2 份)：</label>
-          <input type="text" id="p-veg" placeholder="例如：西蘭花 + 車厘茄 (高膳食纖維)">
-          <label>肉類/蛋白質 (佔 1 份)：</label>
-          <input type="text" id="p-protein" placeholder="例如：烤三文魚 (優質Omega-3)">
+          <label>穀物類：</label>
+          <input type="text" id="p-grain" placeholder="例如：紅米飯">
+          <label>蔬菜類：</label>
+          <input type="text" id="p-veg" placeholder="例如：西蘭花 ">
+          <label>肉類/蛋白質 ：</label>
+          <input type="text" id="p-protein" placeholder="例如：香煎三文魚">
           
-          <label style="margin-top:10px;">或 📷 上載手繪稿相片：</label>
+          <label style="margin-top:10px;">或 📷 上載相片：</label>
           <input type="file" accept="image/*" onchange="handlePersonalPhotoUpload(event)">
         </div>
 
@@ -329,39 +329,39 @@
 
     <!-- ==================== 環節 7: 同學作品精選 ==================== -->
     <div id="step-7" class="step-box card">
-      <h2>🌟 環節 7: 個人構想精選展示</h2>
+      <h2>🌟 環節 7: 精選展示</h2>
       <div id="showcase-list" class="grid-2"></div>
     </div>
 
-    <!-- ==================== 環節 8: 小組妥協成果 + 終極結語 ==================== -->
+    <!-- ==================== 環節 8: 小組妥協成果 ==================== -->
     <div id="step-8" class="step-box card">
-      <h2>🤝 環節 8: 一人計短 —— 小組共創妥協方案</h2>
+      <h2>🤝 環節 8: 一人計短 —— 組內協商方案</h2>
       <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:10px; margin-bottom:14px; border-radius:6px;">
-        🤝 <strong>小組即時共編：</strong>支援文字、小組共同畫板或上載方案海報，組內螢幕即時同步！
+        🤝 <strong>小組共編：</strong>支援文字、小組畫板或上載方案圖片螢幕即時同步！
       </div>
       
       <div class="grid-2">
         <div>
-          <label>組內妥協協議（如何平衡 4 位組員的不同喜好？）：</label>
-          <input type="text" id="g-compromise" placeholder="例如：組員想食炸物，妥協用氣炸；想甜味就加甜粟米..." oninput="broadcastGroupTyping('g_compromise', this.value)">
-          <label>終極 3:2:1 菜單內容：</label>
+          <label>組內協商（如何平衡 4 位組員的不同喜好？）：</label>
+          <input type="text" id="g-compromise" placeholder="例如：組員想食炸物；想吃意粉..." oninput="broadcastGroupTyping('g_compromise', this.value)">
+          <label>終極菜單內容：</label>
           <textarea id="g-menu" placeholder="完整列出主食、配菜及蛋白質內容..." oninput="broadcastGroupTyping('g_menu', this.value)"></textarea>
-          <label>📷 上載小組海報相片：</label>
+          <label>📷 上載小組構想：</label>
           <input type="file" accept="image/*" onchange="handleGroupPhotoUpload(event)">
         </div>
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="margin:0; font-weight:bold;">🖌️ 小組手繪設計區：</label>
+            <label style="margin:0; font-weight:bold;">🖌️ 小組設計區：</label>
             <button class="secondary" style="padding:4px 8px; font-size:12px;" onclick="clearCanvas('group-canvas')">清空畫布</button>
           </div>
           <canvas id="group-canvas" class="canvas-box" width="400" height="240" style="width:100%; height:240px;"></canvas>
         </div>
       </div>
 
-      <button style="background:var(--success); margin-top:15px;" onclick="submitGroupBoxFinal()">代表小組提交終極方案</button>
+      <button style="background:var(--success); margin-top:15px;" onclick="submitGroupBoxFinal()">組長提交終極方案</button>
       <div id="group-results-list" style="margin-top:22px;"></div>
 
-      <!-- 課堂特別結語 -->
+      <!-- 課堂結語 -->
       <div style="margin-top: 35px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fcd34d; border-radius: 14px; padding: 22px; text-align: center;">
         <span style="font-size: 36px;">👨‍🍳👩‍🍳</span>
         <h3 style="margin: 8px 0 4px; color: #b45309; font-size: 20px;">
