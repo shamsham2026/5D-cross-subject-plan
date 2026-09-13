@@ -62,17 +62,17 @@
     <div>
       <label style="margin-right: 8px;">當前模式：</label>
       <select id="role-selector" style="width: auto; margin:0;" onchange="handleRoleChange(this.value)">
-        <option value="student">學生端 </option>
-        <option value="teacher">教師端 </option>
+        <option value="student">學生端 (平板操作)</option>
+        <option value="teacher">教師端 (中控/大屏投影)</option>
       </select>
     </div>
   </header>
 
-  <!-- 密碼 -->
+  <!-- 密碼遮罩彈窗 -->
   <div id="pwd-modal" class="modal-overlay">
     <div class="modal-card">
       <h3 style="margin-top:0;">🔒 教師身分驗證</h3>
-      <p style="font-size:13px; color:#64748b;">請輸入教師操作密碼以解鎖：</p>
+      <p style="font-size:13px; color:#64748b;">請輸入教師操作密碼以解鎖中控台：</p>
       <input type="password" id="teacher-pwd-input" placeholder="••••••••" style="text-align:center; font-size:18px; letter-spacing:4px;" onkeydown="if(event.key==='Enter') verifyTeacherPassword()">
       <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
         <button onclick="verifyTeacherPassword()">確認登入</button>
@@ -81,7 +81,7 @@
     </div>
   </div>
 
-  <!-- 教師控制條 -->
+  <!-- 教師中控控制條 -->
   <div id="teacher-control-bar" class="teacher-ctrl" style="display: none;">
     <strong>課堂進度：</strong>
     <button class="secondary" onclick="prevStep()">⬅️ 上一步</button>
@@ -89,7 +89,7 @@
     <button onclick="nextStep()">下一步 ➡️</button>
     
     <button class="accent" onclick="openGroupControlModal()">👥 分組指揮中心</button>
-    <button style="background:#0891b2;" onclick="openMealConfig()">⚙️ 餐盒款式 (<span id="meal-count-badge">7</span>款)</button>
+    <button style="background:#0891b2;" onclick="openMealConfig()">⚙️ 增減餐盒與相片 (<span id="meal-count-badge">7</span>款)</button>
     <button class="danger-btn" style="margin-left: auto;" onclick="resetAllData()">重設課堂</button>
   </div>
 
@@ -106,32 +106,32 @@
       </div>
     </div>
 
-    <!-- 學生登入 -->
+    <!-- 學生登入卡片 -->
     <div id="student-login-card" class="card" style="border: 2px solid var(--primary);">
-      <h3>👋 歡迎來到健健生活課堂--我是有營小廚神！請輸入你的姓名和學號：</h3>
+      <h3>👋 歡迎來到課堂！請輸入你的個人學號與姓名：</h3>
       <input type="text" id="login-stu-name" placeholder="例如：5A (15) 黃家豪">
-      <button onclick="registerStudent()">進入我的課堂</button>
+      <button onclick="registerStudent()">進入個人課堂</button>
     </div>
 
-    <!-- 教師分組中心 -->
+    <!-- 教師分組指揮中心 -->
     <div id="teacher-group-modal" class="card" style="display:none; border:2px solid #8b5cf6;">
-      <h3>👥 教師分組中心</h3>
-      <p style="font-size:13px; color:#64748b;">點擊後學生端即時切換為小組模式。</p>
+      <h3>👥 教師分組指揮中心</h3>
+      <p style="font-size:13px; color:#64748b;">系統將按當前餐盒總數精確派組。點擊後學生端即時切換為小組協同模式。</p>
       <div>
         <strong>在線學生人數：<span id="online-count">0</span> 人</strong>
         <div id="online-students-list" style="max-height:100px; overflow-y:auto; background:#f8fafc; padding:8px; margin:8px 0;"></div>
       </div>
-      <button class="accent" onclick="assignRandomGroups()">🎲 分組廣播</button>
+      <button class="accent" onclick="assignRandomGroups()">🎲 依餐盒數量自動分組並廣播</button>
       <button class="secondary" onclick="document.getElementById('teacher-group-modal').style.display='none'">關閉</button>
     </div>
 
-    <!-- 教師動態餐盒管理面板 -->
+    <!-- 教師動態餐盒管理面板 (可任意增減) -->
     <div id="meal-config-panel" class="card" style="display:none; border:2px solid #0891b2;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>⚙️ 管理餐盒清單與相片</h3>
+        <h3>⚙️ 管理餐盒清單與相片（自由增減投票項目）</h3>
         <button style="background:#16a34a;" onclick="addNewMealItem()">➕ 增加新餐盒</button>
       </div>
-      <p style="font-size:13px; color:#64748b;">💡 支援自由增加或刪除餐盒。</p>
+      <p style="font-size:13px; color:#64748b;">💡 支援自由增加或刪除餐盒，投票長條圖與分組將即時聯動。上傳相片會自動完成輕量化壓縮。</p>
       <div class="grid-dynamic" id="meal-inputs-container"></div>
       <div style="margin-top: 15px;">
         <button style="background:#0891b2;" onclick="saveMealConfig()">儲存並即時發佈給全班</button>
@@ -139,11 +139,11 @@
       </div>
     </div>
 
-    <!-- ==================== 環節 1: 投票與結果分析 ==================== -->
+    <!-- ==================== 環節 1: 投票與結果 ==================== -->
     <div id="step-1" class="step-box card">
       <h2>環節 1: 最受歡迎午餐盒投票與統計</h2>
       <div id="student-vote-section">
-        <h3>🗳️ 請投下你最喜歡的午膳款式</h3>
+        <h3>🗳️ 【個人操作】請投下你平時最想食的一票：</h3>
         <div class="grid-dynamic" id="vote-options-grid"></div>
       </div>
       <hr style="border:none; border-top:1px solid #e2e8f0; margin: 20px 0;">
