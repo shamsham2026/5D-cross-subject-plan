@@ -3,60 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>有營小廚神模擬大賽</title>
+  <title>滬江小學 有營小廚神模擬大賽 - 設計及製作：沈美玉主任、蕭燕唐主任</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --accent: #f59e0b;
-      --success: #10b981;
-      --danger: #ef4444;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --primary: #2563eb; --primary-hover: #1d4ed8;
+      --accent: #f59e0b; --success: #10b981; --danger: #ef4444;
+      --bg: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text-main); line-height: 1.5; }
     
     /* 頂部 Header */
-    header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 16px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 14px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-    .header-title { font-size: 22px; font-weight: 800; }
+    .header-title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .header-subtitle { margin-top: 8px; font-size: 13px; opacity: 0.95; background: rgba(255,255,255,0.12); padding: 8px 12px; border-radius: 6px; border-left: 4px solid var(--accent); }
 
-    /* 全域計時器 */
-    .timer-banner { background: #0f172a; color: white; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; position: sticky; top: 0; z-index: 90; }
-    .timer-clock { font-family: monospace; font-size: 20px; font-weight: bold; color: #38bdf8; background: #1e293b; padding: 2px 10px; border-radius: 4px; }
-    .timer-clock.danger { color: #f87171; animation: pulse 1s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    /* 狀態列與計時器 */
+    .sync-status-bar { background: #0f172a; color: white; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; position: sticky; top: 0; z-index: 90; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: #22c55e; margin-right: 5px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .timer-clock { font-family: monospace; font-size: 19px; font-weight: bold; color: #38bdf8; background: #1e293b; padding: 2px 8px; border-radius: 4px; }
+    .timer-clock.danger { color: #f87171; }
 
-    /* 教師中控功能列 */
-    .teacher-ctrl { background: #ffffff; border-bottom: 3px solid var(--primary); padding: 10px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    /* 教師操控 */
+    .teacher-ctrl { background: #ffffff; border-bottom: 3px solid var(--primary); padding: 10px 20px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05); }
 
     /* 容器與卡片 */
     .container { max-width: 1050px; margin: 16px auto; padding: 0 12px; }
     .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px; border: 1px solid #e2e8f0; }
     h2 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-size: 19px; }
 
-    /* 按鈕與表單元件 */
-    button { background: var(--primary); color: white; border: none; padding: 9px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.15s; }
+    /* 表單與按鈕 */
+    button { background: var(--primary); color: white; border: none; padding: 9px 15px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
     button:hover { background: var(--primary-hover); }
     button.secondary { background: #64748b; }
     button.accent { background: var(--accent); color: #000; }
     button.success { background: var(--success); }
     button.danger-btn { background: var(--danger); }
     button:disabled { background: #cbd5e1 !important; color: #94a3b8 !important; cursor: not-allowed; }
-    input, select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; margin: 6px 0 12px; font-size: 14px; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; margin: 6px 0 12px; font-size: 14px; box-sizing: border-box; }
 
-    /* 網格系統 */
+    /* 網格與餐盒展示 */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .grid-dynamic { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
     @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-
-    /* 餐盒卡片 */
     .meal-card { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; background: #fff; text-align: center; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
     .meal-img { width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #f1f5f9; }
 
@@ -67,32 +62,39 @@
     .badge-yellow { background: #fef3c7; color: #92400e; }
     .badge-red { background: #fee2e2; color: #991b1b; }
 
-    /* 畫布手繪區 */
+    /* 畫布與步驟 */
     .canvas-box { border: 2px dashed #94a3b8; border-radius: 8px; background: #ffffff; touch-action: none; cursor: crosshair; }
-
-    /* 步驟切換控制 */
     .step-box { display: none; }
-    .step-box.active { display: block; }
+    .step-box.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* 蕭Sir平台橫幅 */
-    .external-tool-banner { background: #f0fdf4; border: 2px solid #86efac; border-radius: 10px; padding: 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    /* 分組 UI */
+    .group-nav-tab { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
+    .group-tab-btn { padding: 6px 12px; background: #e2e8f0; color: #334155; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; white-space: nowrap; }
+    .group-tab-btn.active { background: var(--primary); color: white; }
+    .student-tag-btn { padding: 6px 10px; margin: 4px; border-radius: 6px; border: 1px solid #cbd5e1; background: white; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.1s; }
+    .student-tag-btn:hover { background: #e0e7ff; border-color: #818cf8; }
+    .student-tag-btn.assigned { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; text-decoration: line-through; }
+    .group-slot { display: inline-flex; align-items: center; gap: 4px; background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; margin: 3px; font-size: 13px; font-weight: bold; }
+    .group-slot span.remove-btn { color: #dc2626; cursor: pointer; margin-left: 4px; padding: 0 4px; border-radius: 50%; }
+    .group-slot span.remove-btn:hover { background: #fee2e2; }
 
-    /* 密碼彈窗 */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: none; justify-content: center; align-items: center; z-index: 999; }
-    .modal-card { background: #fff; padding: 24px; border-radius: 12px; width: 90%; max-width: 380px; text-align: center; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 999; }
+    .modal-card { background: #fff; padding: 24px; border-radius: 12px; width: 90%; max-width: 480px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .question-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
   </style>
 </head>
 <body>
 
-  <!-- 主題橫幅 -->
+  <!-- ================= 頂部 Header ================= -->
   <header>
     <div class="header-top">
       <div class="header-title">🍳 有營小廚神模擬大賽</div>
       <div>
         <label style="margin-right: 6px; font-weight:bold; font-size:13px;">身分切換：</label>
-        <select id="role-selector" style="width: auto; margin:0; padding:4px 8px; border-radius:4px;" onchange="handleRoleChange(this.value)">
-          <option value="student">學生端 (平板操作)</option>
-          <option value="teacher">教師端 (中控台 / 投影)</option>
+        <select id="role-selector" style="width: auto; margin:0; padding:5px 10px; border-radius:4px;" onchange="handleRoleChange(this.value)">
+          <option value="student">學生端 (iPad / 平板)</option>
+          <option value="teacher">教師中控台 (主控投影)</option>
         </select>
       </div>
     </div>
@@ -101,959 +103,807 @@
     </div>
   </header>
 
-  <!-- 全班計時器橫幅 -->
-  <div class="timer-banner">
+  <!-- ================= 狀態條與計時器 ================= -->
+  <div class="sync-status-bar">
     <div style="display:flex; align-items:center; gap:8px;">
+      <span class="status-dot" id="cloud-dot"></span>
+      <span id="cloud-status-text">連線建立中...</span>
+      <span style="color:#64748b; margin: 0 4px;">|</span>
       <span>⏳ 課堂計時：</span>
       <span id="timer-clock" class="timer-clock">03:00</span>
     </div>
     <div id="teacher-timer-controls" style="display:none; gap:6px;">
-      <button class="secondary" style="padding:3px 8px; font-size:12px;" onclick="adjustTimer(60)">+1 分鐘</button>
-      <button class="accent" style="padding:3px 8px; font-size:12px;" onclick="startTimer()">▶️ 開始</button>
-      <button class="secondary" style="padding:3px 8px; font-size:12px;" onclick="pauseTimer()">⏸️ 暫停</button>
-      <button class="secondary" style="padding:3px 8px; font-size:12px;" onclick="resetTimer(180)">重設3分</button>
+      <button class="secondary" style="padding:2px 8px; font-size:12px;" onclick="adjustTimer(60)">+1 分</button>
+      <button class="accent" style="padding:2px 8px; font-size:12px;" onclick="startTimer()">▶️ 開始</button>
+      <button class="secondary" style="padding:2px 8px; font-size:12px;" onclick="pauseTimer()">⏸️ 暫停</button>
+      <button class="secondary" style="padding:2px 8px; font-size:12px;" onclick="resetTimer(180)">重設3分</button>
     </div>
   </div>
 
-  <!-- 教師密碼彈窗 (密碼遮罩) -->
+  <!-- ================= 密碼彈窗 ================= -->
   <div id="pwd-modal" class="modal-overlay">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 320px;">
       <h3 style="margin-top:0;">🔒 教師身分驗證</h3>
-      <p style="font-size:13px; color:var(--text-muted);">請輸入沈主任與蕭主任之專用密碼：</p>
+      <p style="font-size:12px; color:var(--text-muted);">請輸入專用密碼解鎖中控台</p>
       <input type="password" id="teacher-pwd-input" placeholder="••••••••" style="text-align:center; font-size:20px; letter-spacing:4px;" onkeydown="if(event.key==='Enter') verifyTeacherPassword()">
       <div style="display:flex; gap:8px; justify-content:center; margin-top:10px;">
-        <button onclick="verifyTeacherPassword()">確認登入</button>
-        <button class="secondary" onclick="cancelTeacherAuth()">取消返回</button>
+        <button onclick="verifyTeacherPassword()">確認解鎖</button>
+        <button class="secondary" onclick="cancelTeacherAuth()">取消</button>
       </div>
     </div>
   </div>
 
-  <!-- 教師中控控制條 -->
+  <!-- ================= 教師操縱面板 ================= -->
   <div id="teacher-control-bar" class="teacher-ctrl" style="display: none;">
-    <strong>課堂進度推播：</strong>
+    <strong>🎮 進度操控：</strong>
     <button class="secondary" onclick="prevStep()">⬅️ 上一步</button>
-    <span id="current-step-display" style="font-weight: 800; color: var(--primary);">環節 1 / 8</span>
+    <select id="jump-step-select" style="width: auto; margin:0; padding:6px 10px; font-weight:bold; color:var(--primary);" onchange="jumpToStep(parseInt(this.value))">
+      <option value="1">環節 1: 投票與統計</option>
+      <option value="2">環節 2: 兩題原因分析</option>
+      <option value="3">環節 3: 最佳條件文字雲</option>
+      <option value="4">環節 4: 小組實時協同探究</option>
+      <option value="5">環節 5: 全班檢視結果</option>
+      <option value="6">環節 6: 個人構想設計</option>
+      <option value="7">環節 7: 個人作品展示</option>
+      <option value="8">環節 8: 小組共識妥協方案</option>
+    </select>
     <button onclick="nextStep()">下一步 ➡️</button>
     
-    <button class="accent" onclick="openGroupControlModal()">👥 分組指揮中心</button>
-    <button style="background:#0891b2;" onclick="openMealConfig()">⚙️ 增減餐盒與相片 (<span id="meal-count-badge">7</span>款)</button>
-    <button class="secondary" onclick="unlockAllVotesForTeacher()">🔄 解鎖全班投票</button>
-    <button class="danger-btn" style="margin-left: auto;" onclick="resetAllData()">⚠️ 重設數據</button>
+    <button class="accent" onclick="openGroupControlModal()">👥 手動分組中心</button>
+    <button style="background:#0891b2;" onclick="openMealConfig()">⚙️ 增減餐盒</button>
+    <button class="secondary" onclick="unlockAllVotesForTeacher()">🔄 重設選票</button>
+    <button class="danger-btn" style="margin-left: auto;" onclick="resetAllData()">⚠️ 重置全班數據</button>
   </div>
 
   <div class="container">
 
-    <!-- 學生身分與模式狀態列 -->
-    <div id="student-header" class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px;">
+    <!-- ================= 學生登入介面 ================= -->
+    <div id="student-login-card" class="card" style="border: 2px solid var(--primary); background: #eff6ff;">
+      <h3 style="margin-top:0; color:var(--primary);">📝 實名登入進入課堂</h3>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">老師將依據你的學號進行分組，請確保資料正確：</p>
+      <div class="grid-2">
+        <div><label>班別：</label><input type="text" id="login-class-name" placeholder="例如：5A" value="5A"></div>
+        <div><label>學號 (數字)：</label><input type="number" id="login-seat-num" placeholder="例如：12" min="1" max="50"></div>
+      </div>
+      <label>學生姓名：</label>
+      <input type="text" id="login-stu-name" placeholder="例如：蕭子軒" onkeydown="if(event.key==='Enter') registerStudent()">
+      <button type="button" onclick="registerStudent()" style="width: 100%; padding: 12px; font-size: 16px;">🚀 確認資料並進入</button>
+    </div>
+
+    <!-- ================= 學生狀態列 ================= -->
+    <div id="student-header" class="card" style="display: none; justify-content: space-between; align-items: center; padding: 10px 16px;">
       <div>
         <span id="stu-mode-tag" class="badge badge-blue">個人操作模式</span>
-        <strong id="stu-name-label" style="margin-left: 8px; font-size:15px;">未登入</strong>
+        <strong id="stu-name-label" style="margin-left: 8px; font-size:15px; color:#1e40af;">載入中...</strong>
       </div>
-      <div>
-        <span class="badge badge-yellow" id="step-badge">與教師同步中</span>
-      </div>
+      <span class="badge badge-yellow" id="step-badge">進度：環節 1</span>
     </div>
 
-    <!-- 學生首次登入卡片 (無阻礙進入) -->
-    <div id="student-login-card" class="card" style="border: 2px solid var(--primary); background: #eff6ff;">
-      <h3 style="margin-top:0;">👋 歡迎小廚神！請輸入你的班級、學號與姓名：</h3>
-      <input type="text" id="login-stu-name" placeholder="例如：5A (12) 蕭子軒" onkeydown="if(event.key==='Enter') registerStudent()">
-      <button type="button" onclick="registerStudent()" style="width: 100%; padding: 11px; font-size: 15px;">
-        🚀 立即進入個人教室
-      </button>
-    </div>
-
-    <!-- 教師分組指揮中心 -->
+    <!-- ================= 教師分組 Modal ================= -->
     <div id="teacher-group-modal" class="card" style="display:none; border:2px solid #8b5cf6;">
-      <h3>👥 教師分組指揮中心</h3>
-      <p style="font-size:13px; color:var(--text-muted);">系統將依據餐盒數量精確派發組別，點擊後學生端即時切換為小組協同模式。</p>
-      <div>
-        <strong>在線學生總數：<span id="online-count">0</span> 人</strong>
-        <div id="online-students-list" style="max-height:100px; overflow-y:auto; background:#f8fafc; padding:8px; margin:8px 0; border-radius:6px;"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; color:#6d28d9;">👥 教師手動分組中心 (按學號點選)</h3>
+        <button class="secondary" style="padding:4px 8px; font-size:12px;" onclick="document.getElementById('teacher-group-modal').style.display='none'">✕ 關閉</button>
       </div>
-      <button class="accent" onclick="assignRandomGroups()">🎲 依餐盒數量自動分組並推播</button>
-      <button class="secondary" onclick="document.getElementById('teacher-group-modal').style.display='none'">關閉</button>
+      <p style="font-size:13px; color:var(--text-muted); margin:6px 0 12px;">點選組別標籤，再從下方點擊學號加入。完成後送出指令，全體平板將即時鎖定組別。</p>
+
+      <div class="group-nav-tab" id="group-nav-tabs"></div>
+
+      <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px; margin-bottom:12px;">
+        <strong style="color:var(--primary); font-size:14px;" id="current-group-title">正在編輯：第 1 組</strong>
+        <div id="current-group-members" style="min-height:36px; padding-top:6px;"></div>
+      </div>
+
+      <div>
+        <strong style="font-size:13px;">點擊學號加入（在線人數：<span id="online-count">0</span>）：</strong>
+        <div id="available-students-pool" style="background:#f1f5f9; padding:8px; border-radius:6px; margin:6px 0; max-height:130px; overflow-y:auto;"></div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button class="success" style="flex:1; padding:11px;" onclick="dispatchGroupCommand()">🚀 送出分組指令 (同步全班)</button>
+        <button class="secondary" onclick="clearAllDraftGroups()">清空重選</button>
+      </div>
     </div>
 
-    <!-- 教師餐盒增減管理面板 -->
+    <!-- ================= 餐盒管理 Modal ================= -->
     <div id="meal-config-panel" class="card" style="display:none; border:2px solid #0891b2;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>⚙️ 管理候選餐盒（可任意增減投票項目）</h3>
-        <button style="background:#16a34a;" onclick="addNewMealItem()">➕ 增加新餐盒</button>
+        <h3 style="margin:0;">⚙️ 管理候選餐盒 (動態對接投票)</h3>
+        <button style="background:#16a34a; padding:6px 12px;" onclick="addNewMealItem()">➕ 新增</button>
       </div>
       <div class="grid-dynamic" id="meal-inputs-container" style="margin-top:12px;"></div>
-      <div style="margin-top: 15px;">
-        <button style="background:#0891b2;" onclick="saveMealConfig()">儲存並即時發佈給全班</button>
-        <button class="secondary" onclick="document.getElementById('meal-config-panel').style.display='none'">關閉</button>
-      </div>
+      <button style="background:#0891b2; margin-top:15px;" onclick="saveMealConfig()">儲存發佈</button>
+      <button class="secondary" onclick="document.getElementById('meal-config-panel').style.display='none'">關閉</button>
     </div>
 
-    <!-- ==================== 環節 1: 一人一票投票 ==================== -->
-    <div id="step-1" class="step-box card">
-      <h2>📊 環節 1: 最受歡迎午餐盒投票與統計</h2>
-      <div id="student-vote-section">
-        <h3>🗳️ 【個人操作】請投下你平時最想吃的一票（每人限投一次）：</h3>
-        <div id="vote-lock-msg" style="display:none; background:#ecfdf5; border-left:4px solid var(--success); padding:8px 12px; margin-bottom:12px; font-weight:bold; color:#065f46;">
-          ✅ 你已成功投票！按鈕已鎖定，請留意大屏幕長條圖實時更新。
+    <!-- ================= 主課堂內容區 ================= -->
+    <div id="classroom-main-content" style="display: none;">
+
+      <!-- 環節 1 -->
+      <div id="step-1" class="step-box card">
+        <h2>📊 環節 1: 最受歡迎午餐盒投票與統計</h2>
+        <div id="student-vote-section">
+          <div style="background:#fffbeb; border-left:4px solid var(--accent); padding:8px; font-size:13px; font-weight:bold; color:#b45309; margin-bottom:12px;">
+            ⚠️ 提示：你的投票已實名綁定學號，每人限投一次！
+          </div>
+          <div id="vote-lock-msg" style="display:none; background:#ecfdf5; border-left:4px solid var(--success); padding:8px 12px; margin-bottom:12px; font-weight:bold; color:#065f46;">
+            ✅ 投票成功！按鈕已鎖定，請看大螢幕結果。
+          </div>
+          <div class="grid-dynamic" id="vote-options-grid"></div>
         </div>
-        <div class="grid-dynamic" id="vote-options-grid"></div>
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin: 20px 0;">
+        <div style="max-width: 750px; margin: auto;"><canvas id="voteChart"></canvas></div>
       </div>
-      <hr style="border:none; border-top:1px solid #e2e8f0; margin: 20px 0;">
-      <h3>📈 全班投票實時長條圖</h3>
-      <div style="max-width: 750px; margin: auto;">
-        <canvas id="voteChart"></canvas>
-      </div>
-    </div>
 
-    <!-- ==================== 環節 2: 原因分析 ==================== -->
-    <div id="step-2" class="step-box card">
-      <h2>💬 環節 2: 點解受歡迎？點解唔受歡迎？</h2>
-      <label>選擇你想評價的餐盒：</label>
-      <select id="step2-target-meal"></select>
-      <select id="step2-type">
-        <option value="受歡迎原因">好受歡迎的原因 (點解咁吸引？)</option>
-        <option value="唔受歡迎原因">唔受歡迎的原因 (點解無人揀？)</option>
-      </select>
-      <textarea id="step2-text" placeholder="寫出具體原因（例如：炸皮香脆好吸引 / 蔬菜暗黃太淡無味...）"></textarea>
-      <button onclick="submitStep2Reason()">送出個人想法</button>
-      <h3 style="margin-top: 20px;">💡 全班小廚神想法牆：</h3>
-      <div id="step2-list" style="max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 6px;"></div>
-    </div>
-
-    <!-- ==================== 環節 3: 文字雲 ==================== -->
-    <div id="step-3" class="step-box card">
-      <h2>☁️ 環節 3: 你心目中嘅「最佳餐盒」條件？</h2>
-      <div class="grid-2">
-        <div>
-          <label>【個人操作】輸入 1 個關鍵詞：</label>
-          <input type="text" id="step3-word" placeholder="例如：少油、高纖、色彩繽紛" maxlength="8">
-          <button onclick="submitStep3Word()">送出詞彙</button>
+      <!-- 環節 2 -->
+      <div id="step-2" class="step-box card">
+        <h2>💬 環節 2: 深入探究 —— 兩題原因分析</h2>
+        <div style="background:#fffbeb; border-left:4px solid var(--accent); padding:8px; font-size:13px; font-weight:bold; color:#b45309; margin-bottom:12px;">
+          ⚠️ 提示：提交後將署名你的姓名展示於看板上。
         </div>
-        <div>
-          <canvas id="wordCloudCanvas" width="450" height="200" style="background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;"></canvas>
+        <div class="question-box" style="border-left: 5px solid var(--primary);">
+          <h3 style="margin-top:0; color:var(--primary); font-size:15px;">🥇 第一條：哪一款「最受歡迎」？為什麼？</h3>
+          <select id="step2-fav-meal" style="font-weight:bold;"></select>
+          <textarea id="step2-fav-reason" placeholder="寫下受歡迎的原因..."></textarea>
+        </div>
+
+        <div class="question-box" style="border-left: 5px solid var(--danger);">
+          <h3 style="margin-top:0; color:var(--danger); font-size:15px;">📉 第二條：哪一款「最不受歡迎」？為什麼？</h3>
+          <select id="step2-unfav-meal" style="font-weight:bold;"></select>
+          <textarea id="step2-unfav-reason" placeholder="寫下不受歡迎的原因..."></textarea>
+        </div>
+
+        <button type="button" onclick="submitStep2TwoQuestions()" style="width:100%; padding:12px; font-size:15px;">🚀 實名送出想法</button>
+        <h3 style="margin-top: 24px;">💡 全班觀點看板：</h3>
+        <div id="step2-list" style="max-height: 250px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 8px;"></div>
+      </div>
+
+      <!-- 環節 3 -->
+      <div id="step-3" class="step-box card">
+        <h2>☁️ 環節 3: 最佳餐盒條件 (文字雲)</h2>
+        <div class="grid-2">
+          <div>
+            <label>輸入 1 個關鍵詞：</label>
+            <input type="text" id="step3-word" placeholder="例如：少油、色彩繽紛" maxlength="8">
+            <button onclick="submitStep3Word()">送出詞彙</button>
+          </div>
+          <div><canvas id="wordCloudCanvas" width="450" height="200" style="background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;"></canvas></div>
         </div>
       </div>
-    </div>
 
-    <!-- ==================== 環節 4: 小組探究營養 (蕭Sir平台連結) ==================== -->
-    <div id="step-4" class="step-box card">
-      <h2>🔬 環節 4: 小組實時協同 —— 自行查出指派餐盒的營養價值</h2>
-      
-      <!-- 蕭Sir青春食力平台專屬提示橫幅 -->
-      <div class="external-tool-banner">
-        <div>
-          <strong style="font-size:15px; color:#166534;">🌟 探究小工具推薦：</strong>
-          <div style="font-size:13px; color:#15803d;">
-            可以利用蕭sir的青春食力平台進行分析及紀錄！
+      <!-- 環節 4 -->
+      <div id="step-4" class="step-box card">
+        <h2>🔬 環節 4: 小組協同查出營養價值</h2>
+        <div style="background:#f0fdf4; border:2px solid #86efac; border-radius:8px; padding:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:14px; color:#166534; font-weight:bold;">🌟 可使用「蕭Sir青春食力平台」輔助分析！</span>
+          <a href="https://breakfastai-xqnwm3tc.manus.space/" target="_blank" style="text-decoration:none;">
+            <button type="button" class="success" style="padding:6px 12px; font-size:12px;">🚀 前往平台</button>
+          </a>
+        </div>
+        <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:10px; margin-bottom:14px;">
+          <strong id="assigned-meal-title" style="color:#065f46; font-size:15px;">等待分組中...</strong>
+          <div id="group-peers-list" style="font-size:13px; color:#1e40af; margin-top:4px;"></div>
+        </div>
+        
+        <div class="grid-2">
+          <div style="text-align:center;"><img id="assigned-meal-img" class="meal-img" style="height:210px;" src=""></div>
+          <div>
+            <label>估算熱量 (kcal)：</label><input type="number" id="nutri-cal" oninput="debouncedGroupSync('cal', this.value)">
+            <label>估算鈉 (mg)：</label><input type="number" id="nutri-na" oninput="debouncedGroupSync('na', this.value)">
+            <label>穀物:蔬菜:肉類 比例：</label><input type="text" id="nutri-ratio" oninput="debouncedGroupSync('ratio', this.value)">
+            <label>檢核結論：</label>
+            <select id="nutri-verdict" onchange="debouncedGroupSync('verdict', this.value)">
+              <option value="高鈉/多油 (需改善)">🔴 高鈉/多油 (需改善)</option>
+              <option value="纖維缺乏/比例失衡">🟡 纖維缺乏/比例失衡</option>
+              <option value="三低一高均衡健康">🟢 均衡健康但欠吸引力</option>
+            </select>
+            <button class="success" onclick="confirmGroupNutriSubmit()">確認提交小組分析</button>
           </div>
         </div>
-        <a href="https://breakfastai-xqnwm3tc.manus.space/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
-          <button type="button" class="success">
-            🚀 開啟「蕭Sir青春食力平台」
-          </button>
-        </a>
       </div>
 
-      <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:10px; margin-bottom:14px; border-radius:4px;">
-        <strong id="assigned-meal-title">等待教師分組中...</strong>
-        <p style="font-size:13px; margin:4px 0 0;">🤝 同組同學已連線，組內任一位同學輸入，全組平板即時同步！</p>
-      </div>
-      
-      <div class="grid-2">
-        <div style="text-align:center;">
-          <img id="assigned-meal-img" class="meal-img" style="height:210px;" src="" alt="餐盒圖片">
-        </div>
-        <div>
-          <label>小組估算熱量 (kcal)：</label>
-          <input type="number" id="nutri-cal" placeholder="例如：820" oninput="broadcastGroupTyping('cal', this.value)">
-          <label>小組估算鈉含量 (mg)：</label>
-          <input type="number" id="nutri-na" placeholder="例如：1250" oninput="broadcastGroupTyping('na', this.value)">
-          <label>小組估計「穀物 : 蔬菜 : 肉類」比例：</label>
-          <input type="text" id="nutri-ratio" placeholder="例如：4 : 0.5 : 2" oninput="broadcastGroupTyping('ratio', this.value)">
-          <label>健康檢核結論：</label>
-          <select id="nutri-verdict" onchange="broadcastGroupTyping('verdict', this.value)">
-            <option value="高鈉/多油 (需改善)">🔴 高鈉/多油 (需改善)</option>
-            <option value="纖維缺乏/比例失衡">🟡 纖維缺乏/比例失衡</option>
-            <option value="三低一高均衡健康">🟢 均衡健康但欠吸引力</option>
-          </select>
-          <button style="background:var(--success);" onclick="confirmGroupNutriSubmit()">確認提交小組分析結果</button>
+      <!-- 環節 5 -->
+      <div id="step-5" class="step-box card">
+        <h2>🔎 環節 5: 檢視各組分析結果</h2>
+        <div id="all-nutri-grid" class="grid-dynamic"></div>
+        <div style="margin-top:14px; background:#fee2e2; border-left:4px solid var(--danger); padding:10px; font-weight:bold; color:var(--danger); border-radius:4px;">
+          ⚠️ 結論：現有餐盒無一能同時滿足「美味度」與「3:2:1 比例」！
         </div>
       </div>
-    </div>
 
-    <!-- ==================== 環節 5: 全班檢視 ==================== -->
-    <div id="step-5" class="step-box card">
-      <h2>🔎 環節 5: 檢視各組分析結果</h2>
-      <p>各組成果彙整：有沒有任何一款餐盒能夠兼顧「高營養價值」與「同學喜愛」？</p>
-      <div id="all-nutri-grid" class="grid-dynamic"></div>
-      <div style="margin-top:14px; background:#fee2e2; border-left:4px solid var(--danger); padding:10px; font-weight:bold; color:var(--danger); border-radius:4px;">
-        ⚠️ 檢視結論：現有餐盒無一能同時滿足「美味度」與「3:2:1 健康比例」！
-      </div>
-    </div>
-
-    <!-- ==================== 環節 6: 個人創作 ==================== -->
-    <div id="step-6" class="step-box card">
-      <h2>🎨 環節 6: 【個人構想】你想要一份點樣的餐盒？</h2>
-      <p style="font-size:13px; color:var(--text-muted);">填寫文字、使用電子畫板繪圖，或直接拍照上載：</p>
-      
-      <div class="grid-2">
-        <div>
-          <label>餐盒名稱：</label>
-          <input type="text" id="p-box-name" placeholder="例如：彩虹照燒雞胸糙米飯">
-          <label>穀物類 (佔 3 份)：</label>
-          <input type="text" id="p-grain" placeholder="例如：紅米混糙米 (維他命B群)">
-          <label>蔬菜類 (佔 2 份)：</label>
-          <input type="text" id="p-veg" placeholder="例如：西蘭花 + 車厘茄 (高膳食纖維)">
-          <label>肉類/蛋白質 (佔 1 份)：</label>
-          <input type="text" id="p-protein" placeholder="例如：烤三文魚 (優質蛋白質)">
-          
-          <label style="margin-top:8px;">或 📷 上載手繪稿相片：</label>
-          <input type="file" accept="image/*" onchange="handlePersonalPhotoUpload(event)">
-        </div>
-
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="margin:0; font-weight:bold;">🖌️ 電子畫板：</label>
-            <button class="secondary" style="padding:3px 8px; font-size:11px;" onclick="clearCanvas('personal-canvas')">清空畫布</button>
+      <!-- 環節 6 -->
+      <div id="step-6" class="step-box card">
+        <h2>🎨 環節 6: 【個人構想】設計你的餐盒</h2>
+        <div class="grid-2">
+          <div>
+            <label>餐盒名稱：</label><input type="text" id="p-box-name" placeholder="彩虹照燒雞胸糙米飯">
+            <label>穀物 (3份)：</label><input type="text" id="p-grain" placeholder="紅米混糙米">
+            <label>蔬菜 (2份)：</label><input type="text" id="p-veg" placeholder="西蘭花 + 車厘茄">
+            <label>肉類 (1份)：</label><input type="text" id="p-protein" placeholder="烤三文魚">
+            <label>📷 上載相片 (自動壓縮)：</label><input type="file" accept="image/*" onchange="handlePhotoUpload(event, 'personal')">
           </div>
-          <canvas id="personal-canvas" class="canvas-box" width="380" height="240" style="width:100%; height:240px;"></canvas>
-        </div>
-      </div>
-      <button style="margin-top:14px;" onclick="submitPersonalBox()">確認發送個人餐盒構想</button>
-    </div>
-
-    <!-- ==================== 環節 7: 同學作品精選 ==================== -->
-    <div id="step-7" class="step-box card">
-      <h2>🌟 環節 7: 個人構想精選展示</h2>
-      <div id="showcase-list" class="grid-2"></div>
-    </div>
-
-    <!-- ==================== 環節 8: 小組妥協成果 + 終極結語 ==================== -->
-    <div id="step-8" class="step-box card">
-      <h2>🤝 環節 8: 一人計短 —— 小組共創妥協方案</h2>
-      <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:10px; margin-bottom:12px; border-radius:4px;">
-        🤝 <strong>小組即時共編：</strong>支援文字、手繪或海報相片，組內螢幕即時同步！
-      </div>
-      
-      <div class="grid-2">
-        <div>
-          <label>組內妥協協議（如何平衡組員的不同喜好？）：</label>
-          <input type="text" id="g-compromise" placeholder="例如：想食炸物妥協用氣炸；想甜味就加甜粟米..." oninput="broadcastGroupTyping('g_compromise', this.value)">
-          <label>終極 3:2:1 菜單內容：</label>
-          <textarea id="g-menu" placeholder="完整列出主食、配菜及蛋白質內容..." oninput="broadcastGroupTyping('g_menu', this.value)"></textarea>
-          <label>📷 上載小組海報相片：</label>
-          <input type="file" accept="image/*" onchange="handleGroupPhotoUpload(event)">
-        </div>
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="margin:0; font-weight:bold;">🖌️ 小組手繪設計區：</label>
-            <button class="secondary" style="padding:3px 8px; font-size:11px;" onclick="clearCanvas('group-canvas')">清空畫布</button>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:bold;">🖌️ 電子畫板 (繪製草圖)：</label>
+              <button class="secondary" style="padding:2px 8px; font-size:11px;" onclick="clearCanvas('personal-canvas')">清空</button>
+            </div>
+            <canvas id="personal-canvas" class="canvas-box" width="380" height="260" style="width:100%; height:260px; background:#fff;"></canvas>
           </div>
-          <canvas id="group-canvas" class="canvas-box" width="380" height="220" style="width:100%; height:220px;"></canvas>
+        </div>
+        <button style="margin-top:10px;" onclick="submitPersonalBox()">發送個人設計</button>
+      </div>
+
+      <!-- 環節 7 -->
+      <div id="step-7" class="step-box card">
+        <h2>🌟 環節 7: 個人構想展示 (實名)</h2>
+        <div id="showcase-list" class="grid-2"></div>
+      </div>
+
+      <!-- 環節 8 -->
+      <div id="step-8" class="step-box card">
+        <h2>🤝 環節 8: 小組共創妥協方案</h2>
+        <div style="background:#ecfdf5; border-left:4px solid var(--success); padding:8px; margin-bottom:12px; font-size:13px;">
+          🤝 小組即時共編：文字或畫布修改後，停下打字 0.8 秒即會自動同步給組員！
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>組內妥協協議：</label><input type="text" id="g-compromise" oninput="debouncedGroupSync('g_compromise', this.value)">
+            <label>終極 3:2:1 菜單：</label><textarea id="g-menu" style="height:80px;" oninput="debouncedGroupSync('g_menu', this.value)"></textarea>
+            <label>📷 上載小組海報：</label><input type="file" accept="image/*" onchange="handlePhotoUpload(event, 'group')">
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:bold;">🖌️ 小組畫板：</label>
+              <button class="secondary" style="padding:2px 8px; font-size:11px;" onclick="clearCanvas('group-canvas')">清空</button>
+            </div>
+            <canvas id="group-canvas" class="canvas-box" width="380" height="220" style="width:100%; height:220px; background:#fff;"></canvas>
+          </div>
+        </div>
+        <button class="success" style="margin-top:10px;" onclick="submitGroupBoxFinal()">代表小組提交終極方案</button>
+        <div id="group-results-list" style="margin-top:18px;"></div>
+        
+        <div style="margin-top: 24px; background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 2px solid #fcd34d; border-radius: 12px; padding: 20px; text-align: center;">
+          <span style="font-size: 32px;">👨‍🍳👩‍🍳</span>
+          <h3 style="margin: 6px 0; color: #b45309;">期待各位小廚神明天製作的美味飯餐！做個有營小主人！</h3>
         </div>
       </div>
 
-      <button style="background:var(--success); margin-top:14px;" onclick="submitGroupBoxFinal()">代表小組提交終極方案</button>
-      <div id="group-results-list" style="margin-top:18px;"></div>
-
-      <!-- 課堂結語 -->
-      <div style="margin-top: 30px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fcd34d; border-radius: 12px; padding: 20px; text-align: center;">
-        <span style="font-size: 34px;">👨‍🍳👩‍🍳</span>
-        <h3 style="margin: 6px 0 4px; color: #b45309; font-size: 19px;">
-          期待各位小廚神明天製作的美味又有營的飯餐！
-        </h3>
-        <p style="margin: 0; font-size: 13px; color: #92400e;">
-          做個健康有營的小主人，明天廚房見！
-        </p>
-      </div>
     </div>
-
   </div>
 
   <script>
-    // ---------------- 安全身分控制 ----------------
+    // ---------------- 全局配置與資料結構 ----------------
     const _AUTH_KEY = "28844775";
     let isTeacherAuthenticated = false;
 
-    function handleRoleChange(selectedRole) {
-      if (selectedRole === 'teacher') {
-        if (!isTeacherAuthenticated) {
-          document.getElementById('pwd-modal').style.display = 'flex';
-          const pwdInput = document.getElementById('teacher-pwd-input');
-          pwdInput.value = '';
-          pwdInput.focus();
-        } else {
-          showTeacherUI();
-        }
-      } else {
-        showStudentUI();
-      }
-    }
-
-    function verifyTeacherPassword() {
-      const input = document.getElementById('teacher-pwd-input').value;
-      if (input === _AUTH_KEY) {
-        isTeacherAuthenticated = true;
-        document.getElementById('pwd-modal').style.display = 'none';
-        showTeacherUI();
-      } else {
-        alert("密碼錯誤，拒絕存取！");
-        cancelTeacherAuth();
-      }
-    }
-
-    function cancelTeacherAuth() {
-      document.getElementById('pwd-modal').style.display = 'none';
-      document.getElementById('teacher-pwd-input').value = '';
-      document.getElementById('role-selector').value = 'student';
-      showStudentUI();
-    }
-
-    function showTeacherUI() {
-      document.getElementById('teacher-control-bar').style.display = 'flex';
-      document.getElementById('teacher-timer-controls').style.display = 'flex';
-      document.getElementById('student-header').style.display = 'none';
-      document.getElementById('student-login-card').style.display = 'none';
-    }
-
-    function showStudentUI() {
-      document.getElementById('teacher-control-bar').style.display = 'none';
-      document.getElementById('teacher-timer-controls').style.display = 'none';
-      document.getElementById('student-header').style.display = 'flex';
-      document.getElementById('meal-config-panel').style.display = 'none';
-      document.getElementById('teacher-group-modal').style.display = 'none';
-      if (!currentStudentName) {
-        document.getElementById('student-login-card').style.display = 'block';
-      }
-    }
-
-    // ---------------- 全局通信通道 ----------------
-    let channel = null;
-    try {
-      channel = new BroadcastChannel('chef_master_channel_v6');
-    } catch(e) {
-      console.warn("BroadcastChannel not supported in this environment.");
-    }
+    // 建議使用學校專用 Firebase，此為公開測試節點
+    const firebaseConfig = { databaseURL: "https://nutrition-chef-default-rtdb.firebaseio.com" };
+    let dbRef = null;
+    let localChannel = null;
 
     const defaultMeals = [
-      { id: "meal_1", name: "A餐: 脆香炸雞扒白汁飯", img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=80" },
-      { id: "meal_2", name: "B餐: 鮮茄焗厚切豬扒飯", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" },
-      { id: "meal_3", name: "C餐: 粟米肉碎糙米飯", img: "https://images.unsplash.com/photo-151205856366-18510be2db19?w=400&q=80" },
-      { id: "meal_4", name: "D餐: 日式咖喱牛肉烏冬", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=400&q=80" },
-      { id: "meal_5", name: "E餐: 葡汁時蔬雜菌燴飯", img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80" },
-      { id: "meal_6", name: "F餐: 蜜汁叉燒雙蛋飯", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80" },
-      { id: "meal_7", name: "G餐: 照燒三文魚五穀飯", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=80" }
+      { id: "meal_1", name: "A餐(第一款): 脆香炸雞扒白汁飯", img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=80" },
+      { id: "meal_2", name: "B餐(第二款): 鮮茄焗厚切豬扒飯", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" },
+      { id: "meal_3", name: "C餐(第三款): 粟米肉碎糙米飯", img: "https://images.unsplash.com/photo-151205856366-18510be2db19?w=400&q=80" },
+      { id: "meal_4", name: "D餐(第四款): 日式咖喱牛肉烏冬", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=400&q=80" },
+      { id: "meal_5", name: "E餐(第五款): 葡汁時蔬雜菌燴飯", img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80" },
+      { id: "meal_6", name: "F餐(第六款): 蜜汁叉燒雙蛋飯", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80" },
+      { id: "meal_7", name: "G餐(第七款): 照燒三文魚五穀飯", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=80" },
+      { id: "meal_8", name: "H餐(第八款): 韓式泡菜炒牛肉飯", img: "https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=400&q=80" },
+      { id: "meal_9", name: "I餐(第九款): 彩虹素什錦豆腐飯", img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80" }
     ];
 
-    // 全局狀態（純內存運行，杜絕儲存上限當機）
     let appState = {
       currentStep: 1,
-      meals: defaultMeals,
-      students: {},
-      votes: { "meal_1":0, "meal_2":0, "meal_3":0, "meal_4":0, "meal_5":0, "meal_6":0, "meal_7":0 },
-      votedUsers: {},
-      step2Reasons: [],
-      step3Words: {},
-      groupNutriDrafts: {},
-      nutriAnalysesFinal: {},
-      personalBoxes: [],
-      groupBoxFinals: {},
-      timerSeconds: 180,
-      isTimerRunning: false
+      meals: JSON.parse(JSON.stringify(defaultMeals)),
+      students: {}, groupAssignments: {},
+      votes: {}, votedUsers: {},
+      step2Responses: [], step3Words: {},
+      groupNutriDrafts: {}, nutriAnalysesFinal: {},
+      personalBoxes: [], groupBoxFinals: {},
+      timerSeconds: 180, isTimerRunning: false
     };
 
-    let currentStudentId = 'chef_' + Math.random().toString(36).substr(2, 6);
+    let currentStudentId = null;
     let currentStudentName = '';
+    let currentStudentSeat = '';
     let currentStudentGroup = null;
     let chartInstance = null;
+    let localPhotos = { personal: null, group: null };
+    let typingTimer = null; // 防手震計時器
 
-    function init() {
-      // 確保各餐盒都有對應的投票欄位
-      ensureVotesIntegrity();
+    // ---------------- 系統初始化與雙備援通訊 ----------------
+    window.onload = function() {
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        dbRef = firebase.database().ref("active_classroom_v9");
+        document.getElementById('cloud-status-text').innerText = "☁️ 雲端實時同步中";
+      } catch(e) {
+        document.getElementById('cloud-status-text').innerText = "📡 局域模式";
+        document.getElementById('cloud-dot').style.background = "#f59e0b";
+      }
+      try { localChannel = new BroadcastChannel('chef_v9'); } catch(e){}
 
       setupCanvas('personal-canvas');
       setupCanvas('group-canvas');
       startLocalTimerHeartbeat();
 
-      if (channel) {
-        channel.onmessage = (e) => {
-          const msg = e.data;
-          if (msg && msg.type === 'STATE_UPDATE') {
-            appState = msg.data;
+      if (dbRef) {
+        dbRef.on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            appState = data;
             checkMyGroupStatus();
             syncView();
-          } else if (msg && msg.type === 'GROUP_INPUT_SYNC') {
-            if (msg.group === currentStudentGroup) {
-              receiveGroupSyncInput(msg.field, msg.value);
-            }
+            if(document.getElementById('teacher-group-modal').style.display === 'block') renderManualGroupUI();
+          }
+        });
+      }
+
+      if (localChannel) {
+        localChannel.onmessage = (e) => {
+          if (e.data && e.data.type === 'SYNC') {
+            appState = e.data.data;
+            checkMyGroupStatus();
+            syncView();
           }
         };
       }
-
       syncView();
-    }
-
-    function ensureVotesIntegrity() {
-      if (!appState.votes) appState.votes = {};
-      if (!appState.votedUsers) appState.votedUsers = {};
-      if (!appState.students) appState.students = {};
-      appState.meals.forEach(m => {
-        if (appState.votes[m.id] === undefined) appState.votes[m.id] = 0;
-      });
-    }
+    };
 
     function broadcastState() {
-      ensureVotesIntegrity();
-      if (channel) {
-        channel.postMessage({ type: 'STATE_UPDATE', data: appState });
-      }
+      if (!appState.votes) appState.votes = {};
+      if (!appState.students) appState.students = {};
+      if (!appState.groupAssignments) appState.groupAssignments = {};
+      appState.meals.forEach(m => { if(appState.votes[m.id] === undefined) appState.votes[m.id] = 0; });
+      
+      try { if (dbRef) dbRef.set(appState); } catch(e){}
+      try { if (localChannel) localChannel.postMessage({ type: 'SYNC', data: appState }); } catch(e){}
       syncView();
     }
 
-    // ---------------- 學生登入操作 (核心防呆保證) ----------------
-    function registerStudent() {
-      const inputEl = document.getElementById('login-stu-name');
-      let name = inputEl ? inputEl.value.trim() : '';
-      if (!name) {
-        name = "小廚神 " + currentStudentId.substr(5, 3);
+    // ---------------- 教師密碼與視圖切換 ----------------
+    function handleRoleChange(role) {
+      if (role === 'teacher') {
+        if (!isTeacherAuthenticated) {
+          document.getElementById('pwd-modal').style.display = 'flex';
+          document.getElementById('teacher-pwd-input').value = '';
+          document.getElementById('teacher-pwd-input').focus();
+        } else showTeacherUI();
+      } else showStudentUI();
+    }
+    function verifyTeacherPassword() {
+      if (document.getElementById('teacher-pwd-input').value === _AUTH_KEY) {
+        isTeacherAuthenticated = true;
+        document.getElementById('pwd-modal').style.display = 'none';
+        showTeacherUI();
+      } else { alert("密碼錯誤！"); cancelTeacherAuth(); }
+    }
+    function cancelTeacherAuth() {
+      document.getElementById('pwd-modal').style.display = 'none';
+      document.getElementById('role-selector').value = 'student';
+      showStudentUI();
+    }
+    function showTeacherUI() {
+      document.getElementById('teacher-control-bar').style.display = 'flex';
+      document.getElementById('teacher-timer-controls').style.display = 'flex';
+      document.getElementById('student-header').style.display = 'none';
+      document.getElementById('student-login-card').style.display = 'none';
+      document.getElementById('classroom-main-content').style.display = 'block';
+    }
+    function showStudentUI() {
+      document.getElementById('teacher-control-bar').style.display = 'none';
+      document.getElementById('teacher-timer-controls').style.display = 'none';
+      document.getElementById('meal-config-panel').style.display = 'none';
+      document.getElementById('teacher-group-modal').style.display = 'none';
+      if (!currentStudentId) {
+        document.getElementById('student-login-card').style.display = 'block';
+        document.getElementById('student-header').style.display = 'none';
+        document.getElementById('classroom-main-content').style.display = 'none';
+      } else {
+        document.getElementById('student-login-card').style.display = 'none';
+        document.getElementById('student-header').style.display = 'flex';
+        document.getElementById('classroom-main-content').style.display = 'block';
       }
-      
+    }
+
+    // ---------------- 學生實名登入 ----------------
+    function registerStudent() {
+      const cls = document.getElementById('login-class-name').value.trim();
+      const seat = document.getElementById('login-seat-num').value.trim();
+      const name = document.getElementById('login-stu-name').value.trim();
+      if (!cls || !seat || !name) return alert("請完整輸入班別、學號(數字)及姓名！");
+
+      currentStudentSeat = seat;
       currentStudentName = name;
+      currentStudentId = `${cls}_${seat}`;
 
-      // 直接隱藏卡片並顯示名稱
-      const card = document.getElementById('student-login-card');
-      if (card) card.style.display = 'none';
-
-      document.getElementById('stu-name-label').innerText = currentStudentName;
-
+      if (!appState.students) appState.students = {};
       appState.students[currentStudentId] = {
-        name: currentStudentName,
-        group: null
+        id: currentStudentId, className: cls, seat: parseInt(seat, 10), name: name, group: null
       };
-
+      
+      showStudentUI();
+      document.getElementById('stu-name-label').innerText = `${cls} (${seat}號) ${name}`;
       broadcastState();
-      alert(`🎉 歡迎小廚神【${currentStudentName}】！已成功進入個人教室。`);
+      alert(`🎉 登入成功！歡迎 ${name}`);
     }
 
     function checkMyGroupStatus() {
-      const me = appState.students ? appState.students[currentStudentId] : null;
-      if (me && me.group) {
-        if (currentStudentGroup !== me.group) {
-          currentStudentGroup = me.group;
-          alert(`🔔 老師已為你完成分組！你已進入【第 ${currentStudentGroup} 組】。`);
+      if (!currentStudentId || !appState.students) return;
+      let foundGrp = null;
+      for (let g = 1; g <= 9; g++) {
+        if (appState.groupAssignments && appState.groupAssignments[g] && appState.groupAssignments[g].includes(parseInt(currentStudentSeat, 10))) {
+          foundGrp = g; break;
         }
-        document.getElementById('stu-mode-tag').className = "badge badge-green";
-        document.getElementById('stu-mode-tag').innerText = `小組協同模式 (第 ${currentStudentGroup} 組)`;
-      } else {
-        document.getElementById('stu-mode-tag').className = "badge badge-blue";
-        document.getElementById('stu-mode-tag').innerText = "個人操作模式";
       }
-      if (currentStudentName) {
-        document.getElementById('stu-name-label').innerText = currentStudentName;
+      if (foundGrp && currentStudentGroup !== foundGrp) {
+        currentStudentGroup = foundGrp;
+        alert(`🔔 老師已發出分組指令！你被指派至【第 ${foundGrp} 組】。`);
+      } else if (!foundGrp) {
+        currentStudentGroup = null;
       }
-    }
-
-    // ---------------- 計時器功能 ----------------
-    function startLocalTimerHeartbeat() {
-      setInterval(() => {
-        if (appState.isTimerRunning && appState.timerSeconds > 0) {
-          appState.timerSeconds--;
-          updateTimerDisplay();
-          if (appState.timerSeconds === 0) {
-            appState.isTimerRunning = false;
-            alert("⏰ 時間到！請各位同學停筆並留意老師指示。");
-          }
-        } else {
-          updateTimerDisplay();
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const min = Math.floor(appState.timerSeconds / 60);
-      const sec = appState.timerSeconds % 60;
-      const str = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-      const clockEl = document.getElementById('timer-clock');
-      if (clockEl) {
-        clockEl.innerText = str;
-        clockEl.classList.toggle('danger', appState.timerSeconds <= 30 && appState.timerSeconds > 0);
-      }
-    }
-
-    function startTimer() { appState.isTimerRunning = true; broadcastState(); }
-    function pauseTimer() { appState.isTimerRunning = false; broadcastState(); }
-    function adjustTimer(s) { appState.timerSeconds += s; broadcastState(); }
-    function resetTimer(s) { appState.timerSeconds = s; appState.isTimerRunning = false; broadcastState(); }
-
-    // ---------------- 步驟切換 ----------------
-    function goToStep(s) {
-      if (s < 1 || s > 8) return;
-      appState.currentStep = s;
-      broadcastState();
-    }
-    function nextStep() { goToStep(appState.currentStep + 1); }
-    function prevStep() { goToStep(appState.currentStep - 1); }
-
-    function resetAllData() {
-      if (confirm("重設將清空所有數據與分組名單。確定？")) {
-        location.reload();
-      }
-    }
-
-    // ---------------- 圖片輕量化處理 ----------------
-    function compressImage(file, callback) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 320;
-          if (width > height) {
-            if (width > maxDim) { height = Math.round((height * maxDim) / width); width = maxDim; }
-          } else {
-            if (height > maxDim) { width = Math.round((width * maxDim) / height); height = maxDim; }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          callback(canvas.toDataURL('image/jpeg', 0.6));
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // ---------------- 動態餐盒管理 ----------------
-    function openMealConfig() {
-      const p = document.getElementById('meal-config-panel');
-      p.style.display = p.style.display === 'none' ? 'block' : 'none';
-      renderMealConfigInputs();
-    }
-
-    function renderMealConfigInputs() {
-      const container = document.getElementById('meal-inputs-container');
-      container.innerHTML = appState.meals.map((m, idx) => `
-        <div class="meal-card">
-          <button style="position:absolute; top:5px; right:5px; padding:2px 6px; background:#dc2626; font-size:11px;" onclick="deleteMealItem('${m.id}')">✕</button>
-          <strong>餐盒 ${idx + 1}</strong>
-          <input type="text" id="cfg-name-${m.id}" value="${m.name}">
-          <img id="cfg-preview-${m.id}" class="meal-img" src="${m.img}" style="height:80px; margin-bottom:6px;">
-          <input type="file" accept="image/*" onchange="handleMealImgUpload(event, '${m.id}')">
-        </div>
-      `).join('');
-    }
-
-    function handleMealImgUpload(event, id) {
-      const file = event.target.files[0];
-      if (file) {
-        compressImage(file, function(url) {
-          document.getElementById(`cfg-preview-${id}`).src = url;
-        });
-      }
-    }
-
-    function addNewMealItem() {
-      const newIndex = appState.meals.length + 1;
-      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      const letter = letters[(newIndex - 1) % letters.length];
-      const newId = 'meal_' + Date.now().toString(36);
       
-      appState.meals.push({
-        id: newId,
-        name: `${letter}餐: 新特選有營餐盒`,
-        img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80"
-      });
-      appState.votes[newId] = 0;
-      renderMealConfigInputs();
-      document.getElementById('meal-count-badge').innerText = appState.meals.length;
-      broadcastState();
+      const tag = document.getElementById('stu-mode-tag');
+      if (currentStudentGroup) {
+        tag.className = "badge badge-green"; tag.innerText = `小組模式 (第 ${currentStudentGroup} 組)`;
+      } else {
+        tag.className = "badge badge-blue"; tag.innerText = "個人操作模式";
+      }
     }
 
-    function deleteMealItem(id) {
-      if (appState.meals.length <= 2) return alert("最少保留 2 款餐盒以供比較！");
-      appState.meals = appState.meals.filter(m => m.id !== id);
-      delete appState.votes[id];
-      renderMealConfigInputs();
-      document.getElementById('meal-count-badge').innerText = appState.meals.length;
-      broadcastState();
-    }
-
-    function saveMealConfig() {
-      appState.meals.forEach(m => {
-        const nameInput = document.getElementById(`cfg-name-${m.id}`);
-        const imgEl = document.getElementById(`cfg-preview-${m.id}`);
-        if (nameInput) m.name = nameInput.value;
-        if (imgEl) m.img = imgEl.src;
-      });
-      document.getElementById('meal-config-panel').style.display = 'none';
-      broadcastState();
-      alert(`✅ 已成功同步 ${appState.meals.length} 款餐盒！`);
-    }
-
-    // ---------------- 教師分組功能 ----------------
+    // ---------------- 教師手動分組引擎 ----------------
+    let activeGrp = 1;
+    let tempDraft = {};
     function openGroupControlModal() {
-      const m = document.getElementById('teacher-group-modal');
-      m.style.display = m.style.display === 'none' ? 'block' : 'none';
-      const stuList = Object.values(appState.students || {});
-      document.getElementById('online-count').innerText = stuList.length;
-      document.getElementById('online-students-list').innerHTML = stuList.map(s => 
-        `<span class="badge ${s.group ? 'badge-green' : 'badge-yellow'}" style="margin:3px;">${s.name} (${s.group ? '第'+s.group+'組' : '未分組'})</span>`
-      ).join('');
+      document.getElementById('teacher-group-modal').style.display = 'block';
+      tempDraft = JSON.parse(JSON.stringify(appState.groupAssignments || {}));
+      for(let i=1; i<=9; i++) if(!tempDraft[i]) tempDraft[i] = [];
+      activeGrp = 1;
+      renderManualGroupUI();
     }
+    function renderManualGroupUI() {
+      const tabs = document.getElementById('group-nav-tabs');
+      tabs.innerHTML = '';
+      for (let g = 1; g <= 9; g++) {
+        const btn = document.createElement('button');
+        btn.className = `group-tab-btn ${g === activeGrp ? 'active' : ''}`;
+        btn.innerText = `第 ${g} 組 (${(tempDraft[g]||[]).length}人)`;
+        btn.onclick = () => { activeGrp = g; renderManualGroupUI(); };
+        tabs.appendChild(btn);
+      }
 
-    function assignRandomGroups() {
-      const keys = Object.keys(appState.students || {});
-      if (keys.length === 0) return alert("目前尚無在線學生！");
-      const groupCount = appState.meals.length;
-      keys.sort(() => Math.random() - 0.5);
-      keys.forEach((key, index) => {
-        appState.students[key].group = (index % groupCount) + 1;
-      });
+      document.getElementById('current-group-title').innerText = `編輯：第 ${activeGrp} 組 (點下方學號加入)`;
+      const membersDiv = document.getElementById('current-group-members');
+      const curList = tempDraft[activeGrp] || [];
+      membersDiv.innerHTML = curList.length ? curList.map(st => `<span class="group-slot">#${st} 號 <span class="remove-btn" onclick="rmSeat(${st})">✕</span></span>`).join('') : '<span style="color:#94a3b8;font-size:13px;">空</span>';
+
+      const pool = document.getElementById('available-students-pool');
+      const stList = Object.values(appState.students || {}).sort((a,b) => a.seat - b.seat);
+      document.getElementById('online-count').innerText = stList.length;
+
+      pool.innerHTML = stList.length ? stList.map(s => {
+        let assigned = null;
+        for(let g=1; g<=9; g++) if((tempDraft[g]||[]).includes(s.seat)) assigned = g;
+        return assigned ? 
+          `<button class="student-tag-btn assigned">#${s.seat} ${s.name} (第${assigned}組)</button>` : 
+          `<button class="student-tag-btn" onclick="addSeat(${s.seat})">➕ #${s.seat} ${s.name}</button>`;
+      }).join('') : '<span style="color:#94a3b8;font-size:13px;">無在線學生</span>';
+    }
+    function addSeat(st) { tempDraft[activeGrp].push(st); renderManualGroupUI(); }
+    function rmSeat(st) { tempDraft[activeGrp] = tempDraft[activeGrp].filter(x => x !== st); renderManualGroupUI(); }
+    function clearAllDraftGroups() { if(confirm("清空重選？")) { for(let i=1;i<=9;i++) tempDraft[i]=[]; renderManualGroupUI(); } }
+    function dispatchGroupCommand() {
+      appState.groupAssignments = JSON.parse(JSON.stringify(tempDraft));
+      document.getElementById('teacher-group-modal').style.display='none';
       broadcastState();
-      openGroupControlModal();
-      alert(`✅ 已依據 ${groupCount} 款餐盒將全班隨機分為 ${groupCount} 組！`);
+      alert("🚀 分組指令已推播全班！");
     }
 
-    // ---------------- 畫布功能 ----------------
-    let localPhotos = { personal: null, group: null };
-
+    // ---------------- 畫布防滑動 (Touch Events Fix) ----------------
     function setupCanvas(canvasId) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0, canvas.width, canvas.height);
       let isDrawing = false;
 
-      function startDraw(e) {
-        isDrawing = true;
-        ctx.beginPath();
+      function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-        ctx.moveTo(clientX - rect.left, clientY - rect.top);
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
       }
 
+      function startDraw(e) {
+        if(e.type === 'touchstart') e.preventDefault(); // 嚴格阻止滾動
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+      }
       function draw(e) {
         if (!isDrawing) return;
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#2563eb';
-        ctx.lineTo(clientX - rect.left, clientY - rect.top);
-        ctx.stroke();
+        if(e.type === 'touchmove') e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#2563eb';
+        ctx.lineTo(pos.x, pos.y); ctx.stroke();
       }
-
-      function stopDraw() { isDrawing = false; }
+      function stopDraw(e) { isDrawing = false; }
 
       canvas.addEventListener('mousedown', startDraw);
       canvas.addEventListener('mousemove', draw);
       canvas.addEventListener('mouseup', stopDraw);
       canvas.addEventListener('mouseleave', stopDraw);
-
       canvas.addEventListener('touchstart', startDraw, { passive: false });
-      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
-      canvas.addEventListener('touchend', stopDraw);
+      canvas.addEventListener('touchmove', draw, { passive: false });
+      canvas.addEventListener('touchend', stopDraw, { passive: false });
     }
-
     function clearCanvas(canvasId) {
-      const canvas = document.getElementById(canvasId);
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
+      const c = document.getElementById(canvasId);
+      if(c) { const ctx=c.getContext('2d'); ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,c.width,c.height); }
     }
 
-    function handlePersonalPhotoUpload(e) {
+    // ---------------- 圖片超級輕量化壓縮 ----------------
+    function handlePhotoUpload(e, type) {
       const file = e.target.files[0];
-      if (file) {
-        compressImage(file, function(url) {
-          localPhotos.personal = url;
-          alert("相片已讀取，提交時將一併發送！");
-        });
-      }
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height, maxDim = 300; 
+          if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } } 
+          else { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          localPhotos[type] = canvas.toDataURL('image/jpeg', 0.6); // 高效壓縮
+          alert("相片已讀取並自動壓縮完成！");
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
-    function handleGroupPhotoUpload(e) {
-      const file = e.target.files[0];
-      if (file) {
-        compressImage(file, function(url) {
-          localPhotos.group = url;
-          alert("小組相片已讀取，提交時將一併同步！");
-        });
-      }
+    // ---------------- 效能防手震：小組打字延遲同步 ----------------
+    function debouncedGroupSync(field, val) {
+      if(!currentStudentGroup) return;
+      if(!appState.groupNutriDrafts) appState.groupNutriDrafts={};
+      if(!appState.groupNutriDrafts[currentStudentGroup]) appState.groupNutriDrafts[currentStudentGroup]={};
+      appState.groupNutriDrafts[currentStudentGroup][field] = val;
+      
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        broadcastState();
+      }, 800); // 停下打字 0.8 秒後才向雲端廣播，防卡死
     }
 
-    // ---------------- 小組鍵盤即時同步 ----------------
-    function broadcastGroupTyping(field, value) {
-      if (!currentStudentGroup) return;
-      if (!appState.groupNutriDrafts[currentStudentGroup]) appState.groupNutriDrafts[currentStudentGroup] = {};
-      appState.groupNutriDrafts[currentStudentGroup][field] = value;
-      if (channel) {
-        channel.postMessage({ type: 'GROUP_INPUT_SYNC', group: currentStudentGroup, field: field, value: value });
-      }
-    }
-
-    function receiveGroupSyncInput(field, value) {
-      const el = document.getElementById(field === 'g_compromise' ? 'g-compromise' : (field === 'g_menu' ? 'g-menu' : `nutri-${field}`));
-      if (el) el.value = value;
-    }
-
-    // ---------------- 頁面與步驟渲染 ----------------
+    // ---------------- 主視圖同步渲染 ----------------
     function syncView() {
-      for (let i = 1; i <= 8; i++) {
+      for (let i=1; i<=8; i++) {
         const el = document.getElementById(`step-${i}`);
-        if (el) el.classList.toggle('active', i === appState.currentStep);
+        if(el) el.classList.toggle('active', i === appState.currentStep);
       }
-      document.getElementById('current-step-display').innerText = `環節 ${appState.currentStep} / 8`;
-      document.getElementById('step-badge').innerText = `同步進度：環節 ${appState.currentStep}`;
-      document.getElementById('meal-count-badge').innerText = appState.meals.length;
+      document.getElementById('jump-step-select').value = appState.currentStep;
+      document.getElementById('step-badge').innerText = `進度：環節 ${appState.currentStep}`;
 
-      if (appState.currentStep === 1) renderStep1();
-      if (appState.currentStep === 2) renderStep2();
-      if (appState.currentStep === 3) renderStep3();
-      if (appState.currentStep === 4) renderStep4();
-      if (appState.currentStep === 5) renderStep5();
-      if (appState.currentStep === 7) renderStep7();
-      if (appState.currentStep === 8) renderStep8();
+      if (appState.currentStep===1) renderStep1();
+      if (appState.currentStep===2) renderStep2();
+      if (appState.currentStep===3) renderStep3();
+      if (appState.currentStep===4) renderStep4();
+      if (appState.currentStep===5) renderStep5();
+      if (appState.currentStep===7) renderStep7();
+      if (appState.currentStep===8) renderStep8();
     }
 
-    // Step 1: 投票與圖表
+    // 環節 1
     function renderStep1() {
       const hasVoted = Boolean(appState.votedUsers && appState.votedUsers[currentStudentId]);
       document.getElementById('vote-lock-msg').style.display = hasVoted ? 'block' : 'none';
-
       const grid = document.getElementById('vote-options-grid');
       grid.innerHTML = appState.meals.map(m => `
         <div class="meal-card">
           <img class="meal-img" src="${m.img}">
           <h4 style="margin:6px 0; font-size:14px;">${m.name}</h4>
-          <button onclick="castVote('${m.id}')" ${hasVoted ? 'disabled' : ''}>
-            ${hasVoted && appState.votedUsers[currentStudentId] === m.id ? '✅ 已投此餐' : (hasVoted ? '已投票' : '投它一票 🍱')}
-          </button>
+          <button onclick="castVote('${m.id}')" ${hasVoted ? 'disabled' : ''}>${hasVoted ? '已投票' : '投它一票'}</button>
         </div>
       `).join('');
-
-      const ctx = document.getElementById('voteChart');
-      if (!ctx) return;
+      if (!document.getElementById('voteChart')) return;
       if (chartInstance) chartInstance.destroy();
-      
-      const colors = ['#ef4444', '#f97316', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'];
-      chartInstance = new Chart(ctx, {
+      const colors = ['#ef4444','#f97316','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#6366f1'];
+      chartInstance = new Chart(document.getElementById('voteChart'), {
         type: 'bar',
         data: {
-          labels: appState.meals.map(m => m.name.length > 7 ? m.name.substring(0, 7)+'..' : m.name),
-          datasets: [{
-            label: '得票數',
-            data: appState.meals.map(m => (appState.votes && appState.votes[m.id]) || 0),
-            backgroundColor: appState.meals.map((_, i) => colors[i % colors.length])
-          }]
+          labels: appState.meals.map(m => m.name.substring(0,8)+'..'),
+          datasets: [{ data: appState.meals.map(m => (appState.votes&&appState.votes[m.id])||0), backgroundColor: colors }]
         },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-        }
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
       });
     }
-
     function castVote(id) {
-      if (appState.votedUsers && appState.votedUsers[currentStudentId]) {
-        return alert("每人限投一票！你已經投過票了。");
-      }
+      if(!currentStudentId) return alert("請先登入！");
+      if(appState.votedUsers && appState.votedUsers[currentStudentId]) return alert("限投一票！");
+      if(!appState.votedUsers) appState.votedUsers={};
       appState.votedUsers[currentStudentId] = id;
-      if (!appState.votes[id]) appState.votes[id] = 0;
-      appState.votes[id] += 1;
-      broadcastState();
-      alert("🎉 投票成功！已同步至大螢幕。");
+      if(!appState.votes[id]) appState.votes[id]=0;
+      appState.votes[id]++;
+      broadcastState(); alert("投票成功！");
     }
+    function unlockAllVotesForTeacher() { if(confirm("重設選票？")){ appState.votedUsers={}; appState.meals.forEach(m=>appState.votes[m.id]=0); broadcastState(); }}
 
-    function unlockAllVotesForTeacher() {
-      if (confirm("確定要重設全班投票限制嗎？")) {
-        appState.votedUsers = {};
-        appState.meals.forEach(m => appState.votes[m.id] = 0);
-        broadcastState();
-        alert("已重設全班投票狀態！");
-      }
-    }
-
-    // Step 2: 正反理由
+    // 環節 2
     function renderStep2() {
-      const select = document.getElementById('step2-target-meal');
-      select.innerHTML = appState.meals.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-      const listEl = document.getElementById('step2-list');
-      listEl.innerHTML = (appState.step2Reasons || []).map(r => `
-        <div style="margin-bottom:6px; font-size:13px; background:#fff; padding:6px 10px; border-radius:4px; border:1px solid #e2e8f0;">
-          <strong>[${r.author}]</strong> 評價 <em>${r.target}</em>: 
-          <span class="badge ${r.type.includes('受歡迎') ? 'badge-red' : 'badge-yellow'}">${r.type}</span>
-          <span>${r.text}</span>
+      const opts = appState.meals.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+      const fSel = document.getElementById('step2-fav-meal'), uSel = document.getElementById('step2-unfav-meal');
+      if (fSel.children.length !== appState.meals.length) { fSel.innerHTML = opts; uSel.innerHTML = opts; if(uSel.options.length>1) uSel.selectedIndex=1; }
+      document.getElementById('step2-list').innerHTML = (appState.step2Responses || []).map(r => `
+        <div style="margin-bottom:8px; font-size:13px; background:#fff; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+          <div style="font-weight:bold; color:var(--primary); margin-bottom:4px;">👤 ${r.author}：</div>
+          <div><span class="badge badge-green">喜歡</span> <strong>${r.favMeal}</strong><br><span style="color:#64748b;">↳ ${r.favReason}</span></div>
+          <div style="margin-top:4px;"><span class="badge badge-red">不喜歡</span> <strong>${r.unfavMeal}</strong><br><span style="color:#64748b;">↳ ${r.unfavReason}</span></div>
         </div>
-      `).join('') || '<div style="color:var(--text-muted);">等待大家輸入想法...</div>';
+      `).join('') || '<div style="color:var(--text-muted);">等待送出...</div>';
+    }
+    function submitStep2TwoQuestions() {
+      if(!currentStudentId) return alert("請先登入！");
+      const fR = document.getElementById('step2-fav-reason').value.trim(), uR = document.getElementById('step2-unfav-reason').value.trim();
+      if(!fR || !uR) return alert("兩題原因皆需填寫！");
+      if(!appState.step2Responses) appState.step2Responses = [];
+      appState.step2Responses.push({
+        author: `${currentStudentName} (#${currentStudentSeat})`,
+        favMeal: document.getElementById('step2-fav-meal').value, favReason: fR,
+        unfavMeal: document.getElementById('step2-unfav-meal').value, unfavReason: uR
+      });
+      document.getElementById('step2-fav-reason').value=''; document.getElementById('step2-unfav-reason').value='';
+      broadcastState(); alert("想法已發布！");
     }
 
-    function submitStep2Reason() {
-      const target = document.getElementById('step2-target-meal').value;
-      const type = document.getElementById('step2-type').value;
-      const text = document.getElementById('step2-text').value.trim();
-      if (!text) return alert("請輸入內容！");
-      appState.step2Reasons.push({ author: currentStudentName || '小廚神', target, type, text });
-      document.getElementById('step2-text').value = '';
-      broadcastState();
-    }
-
-    // Step 3: 文字雲
+    // 環節 3
     function renderStep3() {
-      const canvas = document.getElementById('wordCloudCanvas');
       const list = Object.entries(appState.step3Words || {}).map(([w, s]) => [w, s * 10 + 12]);
-      if (list.length === 0) list.push(['少油', 22], ['高纖', 20], ['好食', 16], ['均衡', 14]);
-      WordCloud(canvas, { list: list, weightFactor: 1, color: 'random-dark' });
+      if (list.length === 0) list.push(['少油',22], ['高纖',20], ['好食',16]);
+      WordCloud(document.getElementById('wordCloudCanvas'), { list, weightFactor: 1, color: 'random-dark' });
     }
     function submitStep3Word() {
+      if(!currentStudentId) return;
       const w = document.getElementById('step3-word').value.trim();
-      if (!w) return;
-      appState.step3Words[w] = (appState.step3Words[w] || 0) + 1;
-      document.getElementById('step3-word').value = '';
-      broadcastState();
+      if(!w) return;
+      if(!appState.step3Words) appState.step3Words={};
+      appState.step3Words[w] = (appState.step3Words[w]||0) + 1;
+      document.getElementById('step3-word').value=''; broadcastState();
     }
 
-    // Step 4: 小組探究
+    // 環節 4
     function renderStep4() {
-      if (!currentStudentGroup) {
-        document.getElementById('assigned-meal-title').innerText = "⚠️ 老師尚未執行分組，請稍候...";
-        return;
-      }
-      const assignedIndex = (parseInt(currentStudentGroup, 10) - 1) % appState.meals.length;
-      const assignedMeal = appState.meals[assignedIndex];
-      document.getElementById('assigned-meal-title').innerText = `【第 ${currentStudentGroup} 組】獲指派探究餐盒：${assignedMeal.name}`;
-      document.getElementById('assigned-meal-img').src = assignedMeal.img;
-
-      const draft = appState.groupNutriDrafts[currentStudentGroup] || {};
-      if (draft.cal) document.getElementById('nutri-cal').value = draft.cal;
-      if (draft.na) document.getElementById('nutri-na').value = draft.na;
-      if (draft.ratio) document.getElementById('nutri-ratio').value = draft.ratio;
-      if (draft.verdict) document.getElementById('nutri-verdict').value = draft.verdict;
+      if(!currentStudentGroup) { document.getElementById('assigned-meal-title').innerText = "等待分組中..."; return; }
+      const idx = (currentStudentGroup - 1) % appState.meals.length;
+      document.getElementById('assigned-meal-title').innerText = `【第 ${currentStudentGroup} 組】探究：${appState.meals[idx].name}`;
+      document.getElementById('assigned-meal-img').src = appState.meals[idx].img;
+      const d = appState.groupNutriDrafts[currentStudentGroup] || {};
+      if(d.cal) document.getElementById('nutri-cal').value = d.cal;
+      if(d.na) document.getElementById('nutri-na').value = d.na;
+      if(d.ratio) document.getElementById('nutri-ratio').value = d.ratio;
+      if(d.verdict) document.getElementById('nutri-verdict').value = d.verdict;
+      
+      const peerSeats = (appState.groupAssignments && appState.groupAssignments[currentStudentGroup]) || [];
+      document.getElementById('group-peers-list').innerText = `👥 參與組員：${peerSeats.map(s => `#${s}號`).join('、')}`;
     }
-
     function confirmGroupNutriSubmit() {
-      if (!currentStudentGroup) return alert("尚未分組！");
-      const cal = document.getElementById('nutri-cal').value;
-      const na = document.getElementById('nutri-na').value;
-      const ratio = document.getElementById('nutri-ratio').value;
-      const verdict = document.getElementById('nutri-verdict').value;
-      if (!cal || !na || !ratio) return alert("請填齊熱量、鈉與比例！");
-
-      const assignedIndex = (parseInt(currentStudentGroup, 10) - 1) % appState.meals.length;
-      appState.nutriAnalysesFinal[assignedIndex] = {
-        group: currentStudentGroup,
-        mealName: appState.meals[assignedIndex].name,
-        img: appState.meals[assignedIndex].img,
-        cal, na, ratio, verdict
+      if(!currentStudentGroup) return alert("尚未分組！");
+      const cal = document.getElementById('nutri-cal').value, na = document.getElementById('nutri-na').value, r = document.getElementById('nutri-ratio').value;
+      if(!cal || !na || !r) return alert("請填齊熱量、鈉與比例！");
+      const idx = (currentStudentGroup - 1) % appState.meals.length;
+      if(!appState.nutriAnalysesFinal) appState.nutriAnalysesFinal={};
+      appState.nutriAnalysesFinal[idx] = {
+        group: currentStudentGroup, submitter: `${currentStudentName}(#${currentStudentSeat})`,
+        mealName: appState.meals[idx].name, img: appState.meals[idx].img,
+        cal, na, ratio: r, verdict: document.getElementById('nutri-verdict').value
       };
-      broadcastState();
-      alert(`第 ${currentStudentGroup} 組數據已提交！`);
+      broadcastState(); alert("小組數據提交成功！");
     }
 
-    // Step 5: 全班檢視
+    // 環節 5
     function renderStep5() {
-      const grid = document.getElementById('all-nutri-grid');
-      grid.innerHTML = appState.meals.map((m, idx) => {
-        const data = appState.nutriAnalysesFinal[idx];
-        return `
-          <div class="meal-card" style="text-align:left;">
-            <img class="meal-img" src="${m.img}" style="height:100px;">
-            <h4 style="margin:4px 0; font-size:13px;">${m.name}</h4>
-            ${data ? `
-              <p style="font-size:12px; margin:2px 0;"><strong>組別：</strong>第 ${data.group} 組</p>
-              <p style="font-size:12px; margin:2px 0;"><strong>熱量/鈉：</strong>${data.cal} kcal | ${data.na} mg</p>
-              <p style="font-size:12px; margin:2px 0;"><strong>比例：</strong>${data.ratio}</p>
-              <span class="badge ${data.verdict.includes('高鈉') ? 'badge-red' : (data.verdict.includes('均衡') ? 'badge-green' : 'badge-yellow')}">${data.verdict}</span>
-            ` : `<p style="font-size:12px; color:var(--text-muted);">探究分析中...</p>`}
-          </div>
-        `;
+      document.getElementById('all-nutri-grid').innerHTML = appState.meals.map((m, i) => {
+        const d = appState.nutriAnalysesFinal && appState.nutriAnalysesFinal[i];
+        return `<div class="meal-card"><img class="meal-img" src="${m.img}"><h4 style="margin:4px 0; font-size:13px;">${m.name}</h4>
+          ${d ? `<p style="font-size:12px; margin:2px 0;"><strong>第 ${d.group} 組</strong> (${d.cal}kcal | ${d.na}mg | ${d.ratio})</p><span class="badge ${d.verdict.includes('高鈉')?'badge-red':'badge-green'}">${d.verdict}</span>` : `<p style="font-size:12px; color:#94a3b8;">探究中...</p>`}
+        </div>`;
       }).join('');
     }
 
-    // Step 6: 個人創作
+    function getCanvasData(id) {
+      const cvs = document.getElementById(id);
+      if(!cvs) return null;
+      return cvs.toDataURL('image/jpeg', 0.6);
+    }
+
+    // 環節 6
     function submitPersonalBox() {
-      const name = document.getElementById('p-box-name').value.trim();
-      const grain = document.getElementById('p-grain').value.trim();
-      const veg = document.getElementById('p-veg').value.trim();
-      const protein = document.getElementById('p-protein').value.trim();
-      
-      const canvas = document.getElementById('personal-canvas');
-      const drawingUrl = canvas ? canvas.toDataURL('image/png') : null;
-      const isCanvasBlank = drawingUrl && drawingUrl.length < 1500;
-
-      if (!name) return alert("請輸入餐盒名稱！");
-
+      if(!currentStudentId) return;
+      const n = document.getElementById('p-box-name').value;
+      if(!n) return alert("請輸入餐盒名稱！");
+      if(!appState.personalBoxes) appState.personalBoxes=[];
       appState.personalBoxes.push({
-        author: currentStudentName || '小廚神',
-        name, grain, veg, protein,
-        drawing: !isCanvasBlank ? drawingUrl : null,
-        photo: localPhotos.personal
+        author: `${currentStudentName} (#${currentStudentSeat})`,
+        name: n, grain: document.getElementById('p-grain').value, veg: document.getElementById('p-veg').value, protein: document.getElementById('p-protein').value,
+        drawing: getCanvasData('personal-canvas'), photo: localPhotos.personal
       });
-
-      alert("個人有營餐盒構想已成功發送！");
-      broadcastState();
+      broadcastState(); alert("設計已送出！");
     }
-
-    // Step 7: 個人方案展示
     function renderStep7() {
-      const showcase = document.getElementById('showcase-list');
-      showcase.innerHTML = (appState.personalBoxes || []).map(box => `
+      document.getElementById('showcase-list').innerHTML = (appState.personalBoxes||[]).map(b => `
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
-          <h4 style="margin:0 0 6px; color:var(--primary);">🍱 ${box.name} <small style="color:var(--text-muted);">(${box.author})</small></h4>
-          ${box.grain ? `<p style="font-size:13px; margin:2px 0;">🌾 <strong>穀物 (3):</strong> ${box.grain}</p>` : ''}
-          ${box.veg ? `<p style="font-size:13px; margin:2px 0;">🥗 <strong>蔬菜 (2):</strong> ${box.veg}</p>` : ''}
-          ${box.protein ? `<p style="font-size:13px; margin:2px 0;">🍗 <strong>肉類 (1):</strong> ${box.protein}</p>` : ''}
-          ${box.drawing ? `<img src="${box.drawing}" style="width:100%; height:110px; object-fit:contain; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; margin-top:4px;">` : ''}
-          ${box.photo ? `<img src="${box.photo}" style="width:100%; height:110px; object-fit:cover; border-radius:4px; margin-top:4px;">` : ''}
+          <h4 style="margin:0 0 4px; color:var(--primary);">🍱 ${b.name}</h4>
+          <p style="margin:0 0 6px; font-size:12px; font-weight:bold;">設計者：${b.author}</p>
+          ${b.grain ? `<p style="font-size:12px; margin:2px 0;">🌾 ${b.grain}</p>` : ''}
+          ${b.veg ? `<p style="font-size:12px; margin:2px 0;">🥗 ${b.veg}</p>` : ''}
+          ${b.protein ? `<p style="font-size:12px; margin:2px 0;">🍗 ${b.protein}</p>` : ''}
+          ${b.drawing ? `<img src="${b.drawing}" style="width:100%; height:110px; object-fit:contain; border:1px solid #e2e8f0; margin-top:4px;">` : ''}
+          ${b.photo ? `<img src="${b.photo}" style="width:100%; height:110px; object-fit:cover; margin-top:4px;">` : ''}
         </div>
-      `).join('') || '<p style="color:var(--text-muted);">等待個人創作提交中...</p>';
+      `).join('') || '<p style="color:var(--text-muted);">等待提交中...</p>';
     }
 
-    // Step 8: 小組妥協成果
+    // 環節 8
     function renderStep8() {
-      if (currentStudentGroup) {
-        const draft = appState.groupNutriDrafts[currentStudentGroup] || {};
-        if (draft.g_compromise) document.getElementById('g-compromise').value = draft.g_compromise;
-        if (draft.g_menu) document.getElementById('g-menu').value = draft.g_menu;
+      if(currentStudentGroup) {
+        const d = appState.groupNutriDrafts[currentStudentGroup] || {};
+        if(d.g_compromise) document.getElementById('g-compromise').value = d.g_compromise;
+        if(d.g_menu) document.getElementById('g-menu').value = d.g_menu;
       }
-      const list = document.getElementById('group-results-list');
-      list.innerHTML = "<h3>🤝 各組終極妥協海報：</h3>" + Object.entries(appState.groupBoxFinals || {}).map(([grp, data]) => `
+      document.getElementById('group-results-list').innerHTML = Object.entries(appState.groupBoxFinals||{}).map(([g, d]) => `
         <div style="background:#f8fafc; border-left:4px solid var(--success); padding:10px; margin-bottom:10px; border-radius:6px;">
-          <h4 style="margin:0 0 4px;">第 ${grp} 組提案：</h4>
-          <p style="font-size:13px; margin:2px 0; color:#b45309;"><strong>🤝 組內妥協：</strong>${data.compromise}</p>
-          <p style="font-size:13px; margin:3px 0;"><strong>🍱 3:2:1 菜單：</strong>${data.menu}</p>
-          ${data.drawing ? `<img src="${data.drawing}" style="width:100%; height:120px; object-fit:contain; background:#fff; border:1px solid #e2e8f0; border-radius:4px; margin-top:4px;">` : ''}
-          ${data.photo ? `<img src="${data.photo}" style="width:100%; height:120px; object-fit:cover; border-radius:4px; margin-top:4px;">` : ''}
+          <h4 style="margin:0 0 4px;">第 ${g} 組提案 <small>(由 ${d.submitter} 提交)</small></h4>
+          <p style="font-size:13px; margin:2px 0;"><strong>🤝 妥協：</strong>${d.compromise}</p>
+          <p style="font-size:13px; margin:3px 0;"><strong>🍱 菜單：</strong>${d.menu}</p>
+          ${d.drawing ? `<img src="${d.drawing}" style="width:100%; height:120px; object-fit:contain; background:#fff; border:1px solid #e2e8f0; margin-top:4px;">` : ''}
+          ${d.photo ? `<img src="${d.photo}" style="width:100%; height:120px; object-fit:cover; margin-top:4px;">` : ''}
         </div>
-      `).join('') || '<p style="color:var(--text-muted);">等待各組妥協協商中...</p>';
+      `).join('') || '<p style="color:var(--text-muted);">等待協商中...</p>';
     }
 
     function submitGroupBoxFinal() {
-      if (!currentStudentGroup) return alert("尚未分組！");
-      const compromise = document.getElementById('g-compromise').value.trim();
-      const menu = document.getElementById('g-menu').value.trim();
-      const canvas = document.getElementById('group-canvas');
-      const drawingUrl = canvas ? canvas.toDataURL('image/png') : null;
-      const isCanvasBlank = drawingUrl && drawingUrl.length < 1500;
-
-      if (!compromise || !menu) return alert("請填寫妥協點與菜單！");
-
+      if(!currentStudentGroup) return alert("尚未分組！");
+      const c = document.getElementById('g-compromise').value, m = document.getElementById('g-menu').value;
+      if(!c || !m) return alert("請填妥文字內容！");
+      if(!appState.groupBoxFinals) appState.groupBoxFinals={};
       appState.groupBoxFinals[currentStudentGroup] = {
-        compromise, menu,
-        drawing: !isCanvasBlank ? drawingUrl : null,
-        photo: localPhotos.group
+        submitter: `${currentStudentName} (#${currentStudentSeat})`,
+        compromise: c, menu: m, drawing: getCanvasData('group-canvas'), photo: localPhotos.group
       };
-      broadcastState();
-      alert(`第 ${currentStudentGroup} 組終極方案已發布！`);
+      broadcastState(); alert("終極方案發布成功！");
     }
 
-    window.onload = init;
+    // 教師設定與計時器管理
+    function openMealConfig() { document.getElementById('meal-config-panel').style.display='block'; renderMealConfigInputs(); }
+    function jumpToStep(s) { if(s>=1 && s<=8) { appState.currentStep = s; broadcastState(); } }
+    function nextStep() { jumpToStep(appState.currentStep + 1); }
+    function prevStep() { jumpToStep(appState.currentStep - 1); }
+    function startTimer() { appState.isTimerRunning=true; broadcastState(); }
+    function pauseTimer() { appState.isTimerRunning=false; broadcastState(); }
+    function adjustTimer(s) { appState.timerSeconds+=s; broadcastState(); }
+    function resetTimer(s) { appState.timerSeconds=s; appState.isTimerRunning=false; broadcastState(); }
+    function updateTimerDisplay() {
+      const m = Math.floor(appState.timerSeconds/60), s = appState.timerSeconds%60;
+      const el = document.getElementById('timer-clock');
+      if(el) { el.innerText=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; el.classList.toggle('danger', appState.timerSeconds>0 && appState.timerSeconds<=30); }
+    }
+    function startLocalTimerHeartbeat() {
+      setInterval(() => {
+        if(appState.isTimerRunning && appState.timerSeconds>0) {
+          appState.timerSeconds--; updateTimerDisplay();
+          if(appState.timerSeconds===0) { appState.isTimerRunning=false; alert("⏰ 時間到！請各位同學停筆。"); }
+        } else updateTimerDisplay();
+      }, 1000);
+    }
+    function resetAllData() {
+      if(confirm("⚠️ 清空數據？")) {
+        appState = { currentStep:1, meals:JSON.parse(JSON.stringify(defaultMeals)), students:{}, groupAssignments:{}, votes:{}, votedUsers:{}, step2Responses:[], step3Words:{}, groupNutriDrafts:{}, nutriAnalysesFinal:{}, personalBoxes:[], groupBoxFinals:{}, timerSeconds:180, isTimerRunning:false };
+        broadcastState(); location.reload();
+      }
+    }
   </script>
 </body>
 </html>
