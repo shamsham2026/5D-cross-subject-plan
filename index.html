@@ -376,7 +376,11 @@
     let isTeacherAuthenticated = false;
 
     // 建議使用學校專用 Firebase，此為公開測試節點
-    const firebaseConfig = { databaseURL: "https://nutrition-chef-default-rtdb.firebaseio.com" };
+    const firebaseConfig = { 
+  databaseURL: "https://d-lesson-default-rtdb.asia-southeast1.firebasedatabase.app" 
+};
+
+
     let dbRef = null;
     let localChannel = null;
 
@@ -927,27 +931,4 @@
     }
   </script>
 </body>
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDAiyLirONlmChK7Wzj8QV6JsjH9F0zY0E",
-    authDomain: "d-lesson.firebaseapp.com",
-    projectId: "d-lesson",
-    storageBucket: "d-lesson.firebasestorage.app",
-    messagingSenderId: "111638574721",
-    appId: "1:111638574721:web:e4897e1a957b162318ff80",
-    measurementId: "G-MSJZW4JGRX"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
 </html>
